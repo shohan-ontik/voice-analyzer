@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Work_Sans, Hind_Siliguri } from "next/font/google";
+import { Hind_Siliguri, Space_Grotesk, Work_Sans } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "./providers";
 
@@ -23,7 +23,8 @@ const hindSiliguri = Hind_Siliguri({
 
 export const metadata: Metadata = {
   title: "PitchPerfect — Sales Pitch Trainer",
-  description: "Practice your sales pitch and get instant AI feedback on presentation, correctness, pronunciation and soft skills.",
+  description:
+    "Practice your sales pitch and get instant AI feedback on presentation, correctness, pronunciation and soft skills.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

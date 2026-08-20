@@ -4,75 +4,70 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BackHeader } from "../components/BackHeader";
 import { SCENARIOS, useAppState } from "../providers";
+import type { AnalysisResult, CategoryKey } from "../lib/analysis";
 
-type Category = {
-  key: string;
-  name: string;
-  score: number;
-  feedback: string;
-  tips: string[];
-  icon: "presentation" | "correctness";
+const ICON_BY_KEY: Record<CategoryKey, "presentation" | "correctness"> = {
+  presentation: "presentation",
+  correctness: "correctness",
+  pronunciation: "correctness",
+  soft: "presentation",
 };
 
-const CATEGORIES: Category[] = [
-  {
-    key: "presentation",
-    name: "Presentation",
-    score: 88,
-    feedback: "Confident tone and steady pace throughout.",
-    tips: ["Add a stronger opening hook in the first line.", "Slow down slightly on the closing sentence."],
-    icon: "presentation",
-  },
-  {
-    key: "correctness",
-    name: "Correctness",
-    score: 74,
-    feedback: "You covered most of the script, but skipped one key phrase.",
-    tips: ["You dropped the cost-saving benefit — mention it explicitly.", "Re-read the full passage once before retaking."],
-    icon: "correctness",
-  },
-  {
-    key: "pronunciation",
-    name: "Pronunciation",
-    score: 79,
-    feedback: "Clear delivery with one recurring slip.",
-    tips: ["ব্যবহার came out rushed twice — slow down on compound words.", "Otherwise crisp and easy to follow."],
-    icon: "correctness",
-  },
-  {
-    key: "soft",
-    name: "Soft Skills",
-    score: 85,
-    feedback: "Warm, persuasive tone that builds trust.",
-    tips: ["Add a brief pause before your call-to-action.", "Mirror the customer's own words back to them."],
-    icon: "presentation",
-  },
-];
+const MOCK_ANALYSIS: AnalysisResult = {
+  overall: 82,
+  verdict: "Strong pitch — a few tweaks and you're there",
+  categories: [
+    {
+      key: "presentation",
+      name: "Presentation",
+      score: 88,
+      feedback: "Confident tone and steady pace throughout.",
+      tips: ["Add a stronger opening hook in the first line.", "Slow down slightly on the closing sentence."],
+    },
+    {
+      key: "correctness",
+      name: "Correctness",
+      score: 74,
+      feedback: "You covered most of the script, but skipped one key phrase.",
+      tips: [
+        "You dropped the cost-saving benefit — mention it explicitly.",
+        "Re-read the full passage once before retaking.",
+      ],
+    },
+    {
+      key: "pronunciation",
+      name: "Pronunciation",
+      score: 79,
+      feedback: "Clear delivery with one recurring slip.",
+      tips: ["ব্যবহার came out rushed twice — slow down on compound words.", "Otherwise crisp and easy to follow."],
+    },
+    {
+      key: "soft",
+      name: "Soft Skills",
+      score: 85,
+      feedback: "Warm, persuasive tone that builds trust.",
+      tips: ["Add a brief pause before your call-to-action.", "Mirror the customer's own words back to them."],
+    },
+  ],
+  transcript: [
+    { text: "আমাদের নতুন প্রোডাক্ট আপনার ব্যবসার কাজ আরও সহজ করে তুলবে। ", kind: "plain" },
+    { text: "এটি ", kind: "plain" },
+    { text: "মানে ", kind: "filler" },
+    { text: "ব্যবহার ", kind: "pronunciation" },
+    {
+      text: "করা যেমন সহজ, তেমনই কার্যকর। প্রতিদিন হাজারো মানুষ এটি ব্যবহার করে সময় ও খরচ দুটোই বাঁচাচ্ছেন। আজই আমাদের সাথে যুক্ত হয়ে আপনার ব্যবসাকে নিয়ে যান এক নতুন উচ্চতায়।",
+      kind: "plain",
+    },
+  ],
+};
 
-const TRANSCRIPT: { text: string; kind: "plain" | "filler" | "pronunciation" }[] = [
-  { text: "আমাদের নতুন প্রোডাক্ট আপনার ব্যবসার কাজ আরও সহজ করে তুলবে। ", kind: "plain" },
-  { text: "এটি ", kind: "plain" },
-  { text: "মানে ", kind: "filler" },
-  { text: "ব্যবহার ", kind: "pronunciation" },
-  {
-    text: "করা যেমন সহজ, তেমনই কার্যকর। প্রতিদিন হাজারো মানুষ এটি ব্যবহার করে সময় ও খরচ দুটোই বাঁচাচ্ছেন। আজই আমাদের সাথে যুক্ত হয়ে আপনার ব্যবসাকে নিয়ে যান এক নতুন উচ্চতায়।",
-    kind: "plain",
-  },
-];
-
-const OVERALL = Math.round(CATEGORIES.reduce((s, c) => s + c.score, 0) / CATEGORIES.length);
 const CIRCUMFERENCE = 540.4;
 
-function verdictFor(score: number) {
-  if (score >= 85) return "Excellent — ready to pitch live";
-  if (score >= 70) return "Strong pitch — a few tweaks and you're there";
-  if (score >= 50) return "Good start — keep practicing the basics";
-  return "Let's rebuild this one together";
-}
-
 export default function ResultsPage() {
-  const { scenario, recording } = useAppState();
+  const { scenario, recording, analysis } = useAppState();
   const scenarioLabel = SCENARIOS.find((s) => s.key === scenario)!.label;
+  const result = analysis ?? MOCK_ANALYSIS;
+  const isSample = !analysis;
 
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -84,11 +79,14 @@ export default function ResultsPage() {
     return () => clearTimeout(t);
   }, []);
 
-  const overallOffset = mounted ? CIRCUMFERENCE * (1 - OVERALL / 100) : CIRCUMFERENCE;
+  const overallOffset = mounted ? CIRCUMFERENCE * (1 - result.overall / 100) : CIRCUMFERENCE;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <BackHeader title={`${scenarioLabel} — Results`} subtitle="Recorded today · 0:42" />
+      <BackHeader
+        title={`${scenarioLabel} — Results`}
+        subtitle={recording ? `Recorded today · 0:${String(recording.durationSec).padStart(2, "0")}` : "Sample results"}
+      />
 
       <div className="grid grid-cols-[420px_1fr]">
         {/* Left: overall + recording playback */}
@@ -111,12 +109,12 @@ export default function ResultsPage() {
               />
             </svg>
             <div className="absolute flex flex-col items-center">
-              <div className="font-display font-bold text-[44px] text-foreground">{OVERALL}</div>
+              <div className="font-display font-bold text-[44px] text-foreground">{result.overall}</div>
               <div className="text-xs text-foreground-muted">out of 100</div>
             </div>
           </div>
           <div className="text-center">
-            <div className="font-display font-bold text-[19px] mb-1.5 text-foreground">{verdictFor(OVERALL)}</div>
+            <div className="font-display font-bold text-[19px] mb-1.5 text-foreground">{result.verdict}</div>
             <div className="text-[13.5px] text-foreground-muted leading-relaxed">
               Based on presentation, correctness, pronunciation and soft skills.
             </div>
@@ -135,6 +133,11 @@ export default function ResultsPage() {
           ) : (
             <div className="w-full rounded-2xl border border-dashed border-border p-4 text-center text-xs text-foreground-muted">
               No recording in this session — showing sample results.
+            </div>
+          )}
+          {isSample && recording && (
+            <div className="w-full rounded-xl bg-teal-soft text-teal text-xs text-center py-2.5 px-3">
+              Showing sample scores — analysis hasn&apos;t run for this recording yet.
             </div>
           )}
 
@@ -164,8 +167,9 @@ export default function ResultsPage() {
         <div className="p-12 flex flex-col gap-3.5">
           <div className="text-[13px] font-bold uppercase tracking-wide text-foreground-muted mb-1">Score breakdown</div>
 
-          {CATEGORIES.map((cat) => {
+          {result.categories.map((cat) => {
             const isOpen = !!expanded[cat.key];
+            const icon = ICON_BY_KEY[cat.key];
             return (
               <div key={cat.key} className="border border-border rounded-2xl bg-background-elevated overflow-hidden">
                 <button
@@ -175,7 +179,7 @@ export default function ResultsPage() {
                 >
                   <div className="w-[34px] h-[34px] rounded-[9px] bg-teal-soft flex items-center justify-center flex-shrink-0">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {cat.icon === "presentation" ? (
+                      {icon === "presentation" ? (
                         <>
                           <rect x="2" y="7" width="20" height="14" rx="2" />
                           <path d="M16 3.5 12 7 8 3.5" />
@@ -258,7 +262,7 @@ export default function ResultsPage() {
             {showTranscript && (
               <div className="px-[22px] pb-[22px]">
                 <div className="font-bangla text-lg leading-[2] text-foreground">
-                  {TRANSCRIPT.map((seg, i) => (
+                  {result.transcript.map((seg, i) => (
                     <span
                       key={i}
                       style={
