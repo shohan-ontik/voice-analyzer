@@ -2,13 +2,9 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
-import {
-  ANALYSIS_JSON_SCHEMA,
-  CATEGORY_LABELS,
-  CATEGORY_ORDER,
-  buildAnalysisPrompt,
-  type AnalysisResult,
-} from "@/app/lib/analysis";
+import { buildAnalysisPrompt, buildAnalysisSchema, type AnalysisResult } from "@/app/lib/analysis";
+import { createPracticeSession, listActiveScoreCategoryNames } from "@/app/lib/apiClient";
+import { getSessionToken } from "@/app/lib/session";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -49,16 +45,17 @@ function transcodeToWav(input: Buffer): Promise<Buffer> {
   });
 }
 
-function normalize(raw: unknown): AnalysisResult {
+function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
   const r = raw as Partial<AnalysisResult> & Record<string, unknown>;
   const clamp = (n: unknown) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
 
-  const byKey = new Map((Array.isArray(r.categories) ? r.categories : []).map((c) => [c?.key, c]));
-  const categories = CATEGORY_ORDER.map((key) => {
-    const c = byKey.get(key) as Partial<AnalysisResult["categories"][number]> | undefined;
+  const byName = new Map(
+    (Array.isArray(r.categories) ? r.categories : []).map((c) => [c?.name, c])
+  );
+  const categories = categoryNames.map((name) => {
+    const c = byName.get(name) as Partial<AnalysisResult["categories"][number]> | undefined;
     return {
-      key,
-      name: CATEGORY_LABELS[key],
+      name,
       score: clamp(c?.score),
       feedback: typeof c?.feedback === "string" ? c.feedback : "No feedback available.",
       tips: Array.isArray(c?.tips) ? c!.tips!.filter((t) => typeof t === "string").slice(0, 3) : [],
@@ -97,24 +94,40 @@ export async function POST(request: Request) {
     );
   }
 
+  const token = await getSessionToken();
+  if (!token) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
   const formData = await request.formData();
   const file = formData.get("file");
   const mode = formData.get("mode");
   const passage = formData.get("passage");
-  const scenario = formData.get("scenario");
+  const topicName = formData.get("topicName");
+  const topicIdField = formData.get("topicId");
 
   if (
     !(file instanceof Blob) ||
     (mode !== "audio" && mode !== "video") ||
     typeof passage !== "string" ||
-    typeof scenario !== "string" ||
+    typeof topicName !== "string" ||
     !passage ||
-    !scenario
+    !topicName
   ) {
     return NextResponse.json({ error: "Missing or invalid form fields." }, { status: 400 });
   }
+  const topicId = typeof topicIdField === "string" && topicIdField ? topicIdField : null;
 
   try {
+    const { items: activeCategories } = await listActiveScoreCategoryNames(token);
+    const categoryNames = activeCategories.map((c) => c.name);
+    if (categoryNames.length === 0) {
+      return NextResponse.json(
+        { error: "No active scoring categories are configured. Ask an admin to enable at least one." },
+        { status: 400 }
+      );
+    }
+
     const inputBuffer = Buffer.from(await file.arrayBuffer());
     let data: string;
     let mimeType: string;
@@ -135,13 +148,13 @@ export async function POST(request: Request) {
     const interaction = await ai.interactions.create({
       model: "gemini-3.7-flash",
       input: [
-        { type: "text", text: buildAnalysisPrompt(passage, scenario) },
+        { type: "text", text: buildAnalysisPrompt(passage, topicName, categoryNames) },
         { type: partType, data, mime_type: mimeType },
       ],
       response_format: {
         type: "text",
         mime_type: "application/json",
-        schema: ANALYSIS_JSON_SCHEMA,
+        schema: buildAnalysisSchema(categoryNames),
       },
     });
 
@@ -149,7 +162,24 @@ export async function POST(request: Request) {
       throw new Error("Gemini returned no output.");
     }
     const parsed = JSON.parse(interaction.output_text);
-    return NextResponse.json(normalize(parsed));
+    const result = normalize(parsed, categoryNames);
+
+    try {
+      await createPracticeSession(token, {
+        topicId,
+        topicName,
+        overall: result.overall,
+        verdict: result.verdict,
+        categories: result.categories,
+        transcript: result.transcript,
+      });
+    } catch (persistErr) {
+      // Don't fail the request over a save error - the user still gets
+      // their results, we just log it for follow-up.
+      console.error("Failed to persist practice session:", persistErr);
+    }
+
+    return NextResponse.json(result);
   } catch (err) {
     console.error("Gemini analysis failed:", err);
     return NextResponse.json({ error: "Analysis failed. Please try again." }, { status: 502 });

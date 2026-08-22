@@ -1,18 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TopNav } from "./components/TopNav";
-import { SCENARIOS, useAppState } from "./providers";
+import { useAppState } from "./providers";
+import type { StatsSummary } from "./lib/types";
 
 export default function Home() {
   const router = useRouter();
-  const { scenario, setScenario } = useAppState();
+  const { topics, topicsLoading, topicsError, selectedTopicId, setSelectedTopicId, selectedTopic } = useAppState();
   const [starting, setStarting] = useState(false);
+  const [stats, setStats] = useState<StatsSummary | null>(null);
 
-  const selectedLabel = SCENARIOS.find((s) => s.key === scenario)!.label;
+  useEffect(() => {
+    fetch("/api/sessions/stats")
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((body) => body && setStats(body))
+      .catch(() => {});
+  }, []);
 
   function startSession() {
+    if (!selectedTopicId) return;
     setStarting(true);
     setTimeout(() => router.push("/record"), 550);
   }
@@ -61,13 +69,14 @@ export default function Home() {
             >
               <path d="M21 12a9 9 0 1 1-9-9" />
             </svg>
-            Preparing your script — {selectedLabel}...
+            Preparing your script — {selectedTopic?.name}...
           </div>
         ) : (
           <button
             type="button"
             onClick={startSession}
-            className="inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-accent text-accent-ink font-display font-semibold text-base hover:-translate-y-px transition-transform"
+            disabled={!selectedTopicId}
+            className="inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-accent text-accent-ink font-display font-semibold text-base hover:-translate-y-px transition-transform disabled:opacity-50 disabled:hover:translate-y-0"
           >
             Start New Session
             <svg
@@ -89,38 +98,48 @@ export default function Home() {
 
       <div className="px-16 pb-11">
         <div className="text-[13px] font-bold tracking-wide uppercase text-foreground-muted mb-4">
-          Choose a scenario
+          Choose a topic
         </div>
-        <div className="flex gap-3 flex-wrap">
-          {SCENARIOS.map((s) => {
-            const isSel = s.key === scenario;
-            return (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => setScenario(s.key)}
-                className={`px-5 py-3 rounded-full text-sm font-semibold border-[1.5px] transition-colors ${
-                  isSel
-                    ? "bg-accent border-accent text-accent-ink"
-                    : "bg-transparent border-border text-foreground-muted"
-                }`}
-              >
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
+        {topicsLoading ? (
+          <div className="text-sm text-foreground-muted">Loading topics…</div>
+        ) : topicsError ? (
+          <div className="text-sm text-red-600">{topicsError}</div>
+        ) : topics.length === 0 ? (
+          <div className="text-sm text-foreground-muted">
+            No practice topics are available yet — ask an admin to add one.
+          </div>
+        ) : (
+          <div className="flex gap-3 flex-wrap">
+            {topics.map((t) => {
+              const isSel = t.id === selectedTopicId;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSelectedTopicId(t.id)}
+                  className={`px-5 py-3 rounded-full text-sm font-semibold border-[1.5px] transition-colors ${
+                    isSel
+                      ? "bg-accent border-accent text-accent-ink"
+                      : "bg-transparent border-border text-foreground-muted"
+                  }`}
+                >
+                  {t.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="px-16 pb-16 grid grid-cols-3 gap-5 max-w-[760px]">
         <StatCard
           label="Last score"
-          value="82"
+          value={stats?.lastScore != null ? String(stats.lastScore) : "—"}
           icon={<path d="M3 3v18h18M19 9l-5 5-4-4-3 3" strokeWidth="2" />}
         />
         <StatCard
           label="Sessions this week"
-          value="4"
+          value={stats ? String(stats.sessionsThisWeek) : "—"}
           icon={
             <>
               <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2" />
@@ -131,8 +150,8 @@ export default function Home() {
           }
         />
         <StatCard
-          label="Day streak"
-          value="6"
+          label="Total sessions"
+          value={stats ? String(stats.totalSessions) : "—"}
           accent
           icon={
             <path

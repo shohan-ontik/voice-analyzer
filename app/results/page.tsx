@@ -3,29 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BackHeader } from "../components/BackHeader";
-import { SCENARIOS, useAppState } from "../providers";
-import type { AnalysisResult, CategoryKey } from "../lib/analysis";
-
-const ICON_BY_KEY: Record<CategoryKey, "presentation" | "correctness"> = {
-  presentation: "presentation",
-  correctness: "correctness",
-  pronunciation: "correctness",
-  soft: "presentation",
-};
+import { useAppState } from "../providers";
+import type { AnalysisResult } from "../lib/analysis";
 
 const MOCK_ANALYSIS: AnalysisResult = {
   overall: 82,
   verdict: "Strong pitch — a few tweaks and you're there",
   categories: [
     {
-      key: "presentation",
       name: "Presentation",
       score: 88,
       feedback: "Confident tone and steady pace throughout.",
       tips: ["Add a stronger opening hook in the first line.", "Slow down slightly on the closing sentence."],
     },
     {
-      key: "correctness",
       name: "Correctness",
       score: 74,
       feedback: "You covered most of the script, but skipped one key phrase.",
@@ -35,14 +26,12 @@ const MOCK_ANALYSIS: AnalysisResult = {
       ],
     },
     {
-      key: "pronunciation",
       name: "Pronunciation",
       score: 79,
       feedback: "Clear delivery with one recurring slip.",
       tips: ["ব্যবহার came out rushed twice — slow down on compound words.", "Otherwise crisp and easy to follow."],
     },
     {
-      key: "soft",
       name: "Soft Skills",
       score: 85,
       feedback: "Warm, persuasive tone that builds trust.",
@@ -64,8 +53,8 @@ const MOCK_ANALYSIS: AnalysisResult = {
 const CIRCUMFERENCE = 540.4;
 
 export default function ResultsPage() {
-  const { scenario, recording, analysis } = useAppState();
-  const scenarioLabel = SCENARIOS.find((s) => s.key === scenario)!.label;
+  const { selectedTopic, recording, analysis } = useAppState();
+  const scenarioLabel = selectedTopic?.name ?? "Practice Session";
   const result = analysis ?? MOCK_ANALYSIS;
   const isSample = !analysis;
 
@@ -168,30 +157,20 @@ export default function ResultsPage() {
           <div className="text-[13px] font-bold uppercase tracking-wide text-foreground-muted mb-1">Score breakdown</div>
 
           {result.categories.map((cat) => {
-            const isOpen = !!expanded[cat.key];
-            const icon = ICON_BY_KEY[cat.key];
+            const isOpen = !!expanded[cat.name];
             return (
-              <div key={cat.key} className="border border-border rounded-2xl bg-background-elevated overflow-hidden">
+              <div key={cat.name} className="border border-border rounded-2xl bg-background-elevated overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => setExpanded((prev) => ({ ...prev, [cat.key]: !prev[cat.key] }))}
+                  onClick={() => setExpanded((prev) => ({ ...prev, [cat.name]: !prev[cat.name] }))}
                   className="w-full text-left p-[18px_22px] flex items-center gap-4"
                 >
                   <div className="w-[34px] h-[34px] rounded-[9px] bg-teal-soft flex items-center justify-center flex-shrink-0">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {icon === "presentation" ? (
-                        <>
-                          <rect x="2" y="7" width="20" height="14" rx="2" />
-                          <path d="M16 3.5 12 7 8 3.5" />
-                        </>
-                      ) : (
-                        <>
-                          <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4" />
-                          <path d="M9 11V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v7" />
-                          <path d="M9 11h6" />
-                          <path d="M15 11h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4" />
-                        </>
-                      )}
+                      <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4" />
+                      <path d="M9 11V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v7" />
+                      <path d="M9 11h6" />
+                      <path d="M15 11h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4" />
                     </svg>
                   </div>
                   <div className="flex-1">

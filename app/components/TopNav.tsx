@@ -1,10 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { AppUser } from "../lib/types";
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((body) => body && setUser(body))
+      .catch(() => {});
+  }, []);
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <div className="flex items-center justify-between px-16 py-7 border-b border-border">
@@ -33,8 +58,16 @@ export function TopNav() {
         >
           History
         </Link>
-        <div className="w-[34px] h-[34px] rounded-full bg-teal-soft flex items-center justify-center font-display font-semibold text-[13px] text-teal">
-          RH
+        <div className="flex items-center gap-3">
+          <div
+            title={user?.name}
+            className="w-[34px] h-[34px] rounded-full bg-teal-soft flex items-center justify-center font-display font-semibold text-[13px] text-teal"
+          >
+            {user ? initials(user.name) : "…"}
+          </div>
+          <button type="button" onClick={logout} className="text-xs font-semibold text-foreground-muted hover:text-foreground">
+            Log out
+          </button>
         </div>
       </div>
     </div>

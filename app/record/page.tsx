@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { BackHeader } from "../components/BackHeader";
-import { PITCH_PASSAGE_BN, SCENARIOS, useAppState, type RecordingMode } from "../providers";
+import { useAppState, type RecordingMode } from "../providers";
 
 type Status = "idle" | "recording" | "stopped";
 
@@ -26,8 +27,7 @@ function formatTime(seconds: number) {
 
 export default function RecordPage() {
   const router = useRouter();
-  const { scenario, setRecording } = useAppState();
-  const scenarioLabel = SCENARIOS.find((s) => s.key === scenario)!.label;
+  const { selectedTopic, setRecording } = useAppState();
 
   const [mode, setMode] = useState<RecordingMode>("video");
   const [status, setStatus] = useState<Status>("idle");
@@ -179,10 +179,21 @@ export default function RecordPage() {
     ? "Nice work! Retake if needed, or send it for analysis."
     : "Tap the button to start recording.";
 
+  if (!selectedTopic) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background gap-4 text-center px-6">
+        <div className="text-foreground-muted text-sm">No topic selected.</div>
+        <Link href="/" className="text-accent font-display font-semibold text-sm">
+          Choose a topic to practice
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <BackHeader
-        title={scenarioLabel}
+        title={selectedTopic.name}
         badge="Passage 1 of 1"
         right={
           <div className="flex items-center gap-3.5">
@@ -203,7 +214,7 @@ export default function RecordPage() {
         {/* Passage card */}
         <div className="bg-background-elevated border border-border rounded-[20px] p-10 flex flex-col">
           <div className="text-xs font-bold uppercase tracking-wide text-foreground-muted mb-5">Read this aloud</div>
-          <div className="font-bangla text-[29px] leading-[1.85] text-foreground flex-1">{PITCH_PASSAGE_BN}</div>
+          <div className="font-bangla text-[29px] leading-[1.85] text-foreground flex-1">{selectedTopic.passage}</div>
           <div className="mt-6 pt-5 border-t border-border flex items-center gap-2.5 text-foreground-muted text-[13px]">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />

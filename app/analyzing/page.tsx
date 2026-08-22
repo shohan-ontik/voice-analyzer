@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisResult } from "../lib/analysis";
-import { PITCH_PASSAGE_BN, SCENARIOS, useAppState } from "../providers";
+import { useAppState } from "../providers";
 
 const STAGES = [
   "Uploading your recording…",
@@ -25,8 +25,7 @@ const CAP_WHILE_WAITING = 92;
 
 export default function AnalyzingPage() {
   const router = useRouter();
-  const { scenario, recording, setAnalysis } = useAppState();
-  const scenarioLabel = SCENARIOS.find((s) => s.key === scenario)!.label;
+  const { selectedTopic, recording, setAnalysis } = useAppState();
 
   const [progress, setProgress] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
@@ -52,6 +51,10 @@ export default function AnalyzingPage() {
       router.replace("/record");
       return;
     }
+    if (!selectedTopic) {
+      router.replace("/");
+      return;
+    }
     if (requestedRef.current) return;
     requestedRef.current = true;
 
@@ -64,15 +67,15 @@ export default function AnalyzingPage() {
         const formData = new FormData();
         formData.append("file", recording!.blob, "recording.webm");
         formData.append("mode", recording!.mode);
-        formData.append("passage", PITCH_PASSAGE_BN);
-        formData.append("scenario", scenarioLabel);
+        formData.append("passage", selectedTopic!.passage);
+        formData.append("topicName", selectedTopic!.name);
+        formData.append("topicId", selectedTopic!.id);
 
         const res = await fetch("/api/analyze", {
           method: "POST",
           body: formData,
         });
         const body = await res.json();
-        console.log(">>>>>>>>", body);
         if (!res.ok) throw new Error(body?.error || "Analysis failed.");
 
         if (progressTimer.current) clearInterval(progressTimer.current);
