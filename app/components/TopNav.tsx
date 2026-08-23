@@ -58,13 +58,20 @@ export function TopNav() {
         >
           History
         </Link>
+        <Link
+          href="/profile"
+          className={`text-sm ${pathname.startsWith("/profile") ? "font-semibold text-foreground" : "font-medium text-foreground-muted"}`}
+        >
+          Profile
+        </Link>
         <div className="flex items-center gap-3">
-          <div
+          <Link
+            href="/profile"
             title={user?.name}
             className="w-[34px] h-[34px] rounded-full bg-teal-soft flex items-center justify-center font-display font-semibold text-[13px] text-teal"
           >
             {user ? initials(user.name) : "…"}
-          </div>
+          </Link>
           <button type="button" onClick={logout} className="text-xs font-semibold text-foreground-muted hover:text-foreground">
             Log out
           </button>

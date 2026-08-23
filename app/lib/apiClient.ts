@@ -93,3 +93,7 @@ export function listOwnPracticeSessions(token: string, params: { page?: number; 
 export function getOwnStatsSummary(token: string) {
   return request<StatsSummary>("/practice-sessions/stats/summary", { token });
 }
+
+export function changePassword(token: string, input: { currentPassword: string; newPassword: string }) {
+  return request<{ success: true }>("/auth/me/password", { method: "PATCH", token, body: input });
+}
