@@ -69,7 +69,6 @@ export default function AnalyzingPage() {
         formData.append("mode", recording!.mode);
         formData.append("passage", selectedTopic!.passage);
         formData.append("topicName", selectedTopic!.name);
-        formData.append("topicId", selectedTopic!.id);
 
         const res = await fetch("/api/analyze", {
           method: "POST",

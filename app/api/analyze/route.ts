@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
 import { buildAnalysisPrompt, buildAnalysisSchema, type AnalysisResult } from "@/app/lib/analysis";
-import { createPracticeSession, listActiveScoreCategoryNames } from "@/app/lib/apiClient";
+import { listActiveScoreCategoryNames } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
 
 export const runtime = "nodejs";
@@ -104,7 +104,6 @@ export async function POST(request: Request) {
   const mode = formData.get("mode");
   const passage = formData.get("passage");
   const topicName = formData.get("topicName");
-  const topicIdField = formData.get("topicId");
 
   if (
     !(file instanceof Blob) ||
@@ -116,7 +115,6 @@ export async function POST(request: Request) {
   ) {
     return NextResponse.json({ error: "Missing or invalid form fields." }, { status: 400 });
   }
-  const topicId = typeof topicIdField === "string" && topicIdField ? topicIdField : null;
 
   try {
     const { items: activeCategories } = await listActiveScoreCategoryNames(token);
@@ -164,21 +162,9 @@ export async function POST(request: Request) {
     const parsed = JSON.parse(interaction.output_text);
     const result = normalize(parsed, categoryNames);
 
-    try {
-      await createPracticeSession(token, {
-        topicId,
-        topicName,
-        overall: result.overall,
-        verdict: result.verdict,
-        categories: result.categories,
-        transcript: result.transcript,
-      });
-    } catch (persistErr) {
-      // Don't fail the request over a save error - the user still gets
-      // their results, we just log it for follow-up.
-      console.error("Failed to persist practice session:", persistErr);
-    }
-
+    // Not persisted here - the user reviews the results first and the
+    // practice session is only written to their history when they press
+    // "Save & Continue" (see POST /api/sessions).
     return NextResponse.json(result);
   } catch (err) {
     console.error("Gemini analysis failed:", err);

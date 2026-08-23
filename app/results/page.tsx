@@ -60,6 +60,8 @@ export default function ResultsPage() {
 
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -67,6 +69,34 @@ export default function ResultsPage() {
     const t = setTimeout(() => setMounted(true), 60);
     return () => clearTimeout(t);
   }, []);
+
+  async function handleSave() {
+    if (!analysis || saved || saving) return;
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topicId: selectedTopic?.id ?? null,
+          topicName: selectedTopic?.name ?? "Practice Session",
+          overall: analysis.overall,
+          verdict: analysis.verdict,
+          categories: analysis.categories,
+          transcript: analysis.transcript,
+        }),
+      });
+      const responseBody = await res.json();
+      if (!res.ok) throw new Error(responseBody?.error?.message ?? "Failed to save this session.");
+      setSaved(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save this session.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const overallOffset = mounted ? CIRCUMFERENCE * (1 - result.overall / 100) : CIRCUMFERENCE;
 
@@ -133,16 +163,19 @@ export default function ResultsPage() {
           <div className="w-full flex flex-col gap-2.5 mt-2">
             <button
               type="button"
-              onClick={() => setSaved(true)}
-              className="w-full py-3.5 rounded-xl bg-accent text-accent-ink font-display font-semibold text-sm flex items-center justify-center gap-2"
+              onClick={handleSave}
+              disabled={isSample || saving || saved}
+              title={isSample ? "Nothing to save — this is a sample result." : undefined}
+              className="w-full py-3.5 rounded-xl bg-accent text-accent-ink font-display font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {saved && (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               )}
-              {saved ? "Saved" : "Save & Continue"}
+              {saved ? "Saved" : saving ? "Saving…" : "Save & Continue"}
             </button>
+            {saveError && <div className="text-[13px] text-red-600 text-center">{saveError}</div>}
             <Link
               href="/record"
               className="w-full py-3.5 rounded-xl border-[1.5px] border-border text-foreground font-display font-semibold text-sm text-center"
