@@ -90,6 +90,10 @@ export function listOwnPracticeSessions(token: string, params: { page?: number; 
   });
 }
 
+export function getOwnPracticeSession(token: string, id: string) {
+  return request<PracticeSessionRecord>(`/practice-sessions/${id}`, { token });
+}
+
 export function getOwnStatsSummary(token: string) {
   return request<StatsSummary>("/practice-sessions/stats/summary", { token });
 }

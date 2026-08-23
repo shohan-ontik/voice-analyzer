@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TopNav } from "../components/TopNav";
 import type { PracticeSessionRecord, StatsSummary } from "../lib/types";
@@ -20,7 +21,6 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -79,58 +79,39 @@ export default function HistoryPage() {
             <div className="flex flex-col gap-3">
               {filtered.map((s) => {
                 const tone = scoreTone(s.overallScore);
-                const isOpen = expandedId === s.id;
                 return (
-                  <div key={s.id} className="border border-border rounded-2xl bg-background-elevated overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId((prev) => (prev === s.id ? null : s.id))}
-                      className="w-full text-left p-[18px_22px] flex items-center gap-4.5"
+                  <Link
+                    key={s.id}
+                    href={`/history/${s.id}`}
+                    className="border border-border rounded-2xl bg-background-elevated flex items-center gap-4.5 p-[18px_22px] hover:border-accent transition-colors"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center font-display font-bold text-base flex-shrink-0"
+                      style={{ background: tone.bg, color: tone.color }}
                     >
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center font-display font-bold text-base flex-shrink-0"
-                        style={{ background: tone.bg, color: tone.color }}
-                      >
-                        {s.overallScore}
+                      {s.overallScore}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <div className="font-display font-semibold text-[15px] text-foreground">{s.topicName}</div>
+                        <div className="text-xs text-foreground-muted">{formatDate(s.createdAt)}</div>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2.5 mb-1">
-                          <div className="font-display font-semibold text-[15px] text-foreground">{s.topicName}</div>
-                          <div className="text-xs text-foreground-muted">{formatDate(s.createdAt)}</div>
-                        </div>
-                        <div className="text-[13px] text-foreground-muted">{s.verdict}</div>
-                      </div>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="var(--foreground-muted)"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="flex-shrink-0 transition-transform duration-200"
-                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-                    {isOpen && (
-                      <div className="px-[22px] pb-5 pl-[78px] flex flex-col gap-2.5">
-                        {s.categories.map((cat) => (
-                          <div key={cat.name} className="flex items-center gap-3">
-                            <div className="w-28 text-[12.5px] text-foreground-muted">{cat.name}</div>
-                            <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
-                              <div className="h-full rounded-full bg-accent" style={{ width: `${cat.score}%` }} />
-                            </div>
-                            <div className="w-[26px] text-right text-[12.5px] font-semibold text-foreground">
-                              {cat.score}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      <div className="text-[13px] text-foreground-muted">{s.verdict}</div>
+                    </div>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--foreground-muted)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="flex-shrink-0"
+                    >
+                      <polyline points="9 6 15 12 9 18" />
+                    </svg>
+                  </Link>
                 );
               })}
             </div>

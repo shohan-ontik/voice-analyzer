@@ -28,7 +28,8 @@ export type StatsSummary = {
   totalSessions: number;
 };
 
-// Mirrors a PracticeSession row from GET /practice-sessions.
+// Mirrors a PracticeSession row from GET /practice-sessions and
+// GET /practice-sessions/:id.
 export type PracticeSessionRecord = {
   id: string;
   topicId: string | null;
@@ -36,6 +37,7 @@ export type PracticeSessionRecord = {
   overallScore: number;
   verdict: string;
   categories: { name: string; score: number; feedback: string; tips: string[] }[];
+  transcript: { text: string; kind: "plain" | "filler" | "pronunciation" }[];
   createdAt: string;
 };
 
