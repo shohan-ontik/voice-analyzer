@@ -79,15 +79,15 @@ export function buildAnalysisSchema(categoryNames: string[]) {
   };
 }
 
-export function buildAnalysisPrompt(passage: string, scenarioLabel: string, categoryNames: string[]) {
+export function buildAnalysisPrompt(referenceFacts: string, scenarioLabel: string, categoryNames: string[]) {
   const categoryList = categoryNames.map((name) => `   - "${name}"`).join("\n");
 
-  return `You are an expert sales-pitch coach evaluating a practice recording for the "${scenarioLabel}" scenario.
+  return `You are an expert sales-pitch coach evaluating a practice recording for the "${scenarioLabel}" pitch.
 
-The speaker was asked to read the following Bangla passage aloud as their pitch:
+Below are the key reference facts the speaker should convey about "${scenarioLabel}". This is NOT a script to recite verbatim — the speaker is expected to pitch in their own words, in their own order and structure:
 
 """
-${passage}
+${referenceFacts}
 """
 
 Watch or listen to the attached recording and:
@@ -97,7 +97,7 @@ Watch or listen to the attached recording and:
    - "pronunciation" for words that were mispronounced, slurred, or unclear
    - "plain" for everything else
 
-2. Score each of the following categories from 0-100, each with one sentence of specific feedback and exactly two short, actionable tips that reference what was actually said (not generic advice). Judge each by its plain-English meaning in the context of a "${scenarioLabel}" sales pitch:
+2. Score each of the following categories from 0-100, each with one sentence of specific feedback and exactly two short, actionable tips that reference what was actually said (not generic advice). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
 ${categoryList}
 
 3. Give an overall score (the rounded average of the category scores) and one encouraging, specific one-sentence verdict.

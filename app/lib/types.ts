@@ -11,7 +11,8 @@ export type AppUser = {
 };
 
 // Mirrors voice-analyzer-api's Topic model — an admin-managed practice
-// scenario (name + the Bangla passage to read aloud).
+// scenario (name + the key facts, in Bangla, the pitch should cover —
+// not a script to recite verbatim).
 export type Topic = {
   id: string;
   name: string;

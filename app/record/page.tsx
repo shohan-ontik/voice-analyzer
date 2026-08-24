@@ -194,7 +194,7 @@ export default function RecordPage() {
     <div className="flex-1 flex flex-col bg-background">
       <BackHeader
         title={selectedTopic.name}
-        badge="Passage 1 of 1"
+        badge="Use your own words"
         right={
           <div className="flex items-center gap-3.5">
             {status === "recording" && (
@@ -213,7 +213,7 @@ export default function RecordPage() {
       <div className="flex-1 grid grid-cols-[1.3fr_1fr] gap-8 p-10 max-w-[1440px] w-full mx-auto">
         {/* Passage card */}
         <div className="bg-background-elevated border border-border rounded-[20px] p-10 flex flex-col">
-          <div className="text-xs font-bold uppercase tracking-wide text-foreground-muted mb-5">Read this aloud</div>
+          <div className="text-xs font-bold uppercase tracking-wide text-foreground-muted mb-5">Key facts to cover</div>
           <div className="font-bangla text-[29px] leading-[1.85] text-foreground flex-1">{selectedTopic.passage}</div>
           <div className="mt-6 pt-5 border-t border-border flex items-center gap-2.5 text-foreground-muted text-[13px]">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -221,7 +221,7 @@ export default function RecordPage() {
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            Speak clearly and read the full passage — take a breath before you start.
+            This isn&apos;t a script — pitch it in your own words. You&apos;ll be marked on accuracy, not on matching this wording.
           </div>
         </div>
 
