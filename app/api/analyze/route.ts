@@ -9,6 +9,19 @@ import { getSessionToken } from "@/app/lib/session";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// The @google/genai SDK sometimes wraps the real error in `.cause`, so check
+// both levels for the shape Gemini uses on 429s (statusCode/error.code) plus
+// a message fallback in case that shape changes.
+function isQuotaError(err: unknown): boolean {
+  return [err, err instanceof Error ? err.cause : undefined].some((candidate) => {
+    if (!candidate || typeof candidate !== "object") return false;
+    const e = candidate as Record<string, unknown>;
+    if (e.statusCode === 429) return true;
+    if ((e.error as Record<string, unknown> | undefined)?.code === "too_many_requests") return true;
+    return typeof e.message === "string" && /quota|rate.?limit/i.test(e.message);
+  });
+}
+
 function transcodeToWav(input: Buffer): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     if (!ffmpegPath) {
@@ -168,6 +181,15 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("Gemini analysis failed:", err);
+    if (isQuotaError(err)) {
+      return NextResponse.json(
+        {
+          error:
+            "The AI scoring service has hit its usage limit for now. Please wait a minute and try again, or ask an admin to check the Gemini API plan.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ error: "Analysis failed. Please try again." }, { status: 502 });
   }
 }
