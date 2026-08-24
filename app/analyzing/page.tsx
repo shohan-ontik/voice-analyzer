@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisResult } from "../lib/analysis";
+import { TopNav } from "../components/TopNav";
 import { useAppState } from "../providers";
 
 const STAGES = [
@@ -113,7 +114,9 @@ export default function AnalyzingPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-background">
+    <div className="flex-1 flex flex-col bg-background">
+      <TopNav />
+      <div className="flex-1 flex items-center justify-center">
       <div className="flex flex-col items-center gap-7 max-w-[520px] text-center">
         <div className="relative w-[168px] h-[168px] flex items-center justify-center">
           <svg
@@ -260,6 +263,7 @@ export default function AnalyzingPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

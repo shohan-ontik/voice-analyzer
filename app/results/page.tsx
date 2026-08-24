@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnalysisBreakdown } from "../components/AnalysisBreakdown";
 import { BackHeader } from "../components/BackHeader";
+import { TopNav } from "../components/TopNav";
 import { useAppState } from "../providers";
 import type { AnalysisResult } from "../lib/analysis";
 
@@ -101,6 +102,7 @@ export default function ResultsPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
+      <TopNav />
       <BackHeader
         title={`${scenarioLabel} — Results`}
         subtitle={recording ? `Recorded today · 0:${String(recording.durationSec).padStart(2, "0")}` : "Sample results"}

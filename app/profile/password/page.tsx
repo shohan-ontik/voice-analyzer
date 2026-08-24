@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { BackHeader } from "../../components/BackHeader";
+import { TopNav } from "../../components/TopNav";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -47,6 +48,7 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
+      <TopNav />
       <BackHeader title="Change Password" backHref="/profile" />
 
       <div className="px-16 py-12 max-w-[440px] w-full mx-auto flex flex-col gap-6">

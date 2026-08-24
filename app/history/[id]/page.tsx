@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { AnalysisBreakdown } from "../../components/AnalysisBreakdown";
 import { BackHeader } from "../../components/BackHeader";
+import { TopNav } from "../../components/TopNav";
 import type { PracticeSessionRecord } from "../../lib/types";
 
 const CIRCUMFERENCE = 540.4;
@@ -37,6 +38,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   if (error) {
     return (
       <div className="flex-1 flex flex-col bg-background">
+        <TopNav />
         <BackHeader title="Session" backHref="/history" />
         <div className="flex-1 flex items-center justify-center text-sm text-red-600">{error}</div>
       </div>
@@ -46,6 +48,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   if (!session) {
     return (
       <div className="flex-1 flex flex-col bg-background">
+        <TopNav />
         <BackHeader title="Session" backHref="/history" />
         <div className="flex-1 flex items-center justify-center text-sm text-foreground-muted">Loading…</div>
       </div>
@@ -56,6 +59,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="flex-1 flex flex-col bg-background">
+      <TopNav />
       <BackHeader
         title={`${session.topicName} — Results`}
         subtitle={formatDate(session.createdAt)}

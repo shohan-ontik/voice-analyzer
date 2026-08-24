@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BackHeader } from "../components/BackHeader";
+import { TopNav } from "../components/TopNav";
 import { useAppState, type RecordingMode } from "../providers";
 
 type Status = "idle" | "recording" | "stopped";
@@ -181,17 +182,21 @@ export default function RecordPage() {
 
   if (!selectedTopic) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background gap-4 text-center px-6">
-        <div className="text-foreground-muted text-sm">No topic selected.</div>
-        <Link href="/" className="text-accent font-display font-semibold text-sm">
-          Choose a topic to practice
-        </Link>
+      <div className="flex-1 flex flex-col bg-background">
+        <TopNav />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-6">
+          <div className="text-foreground-muted text-sm">No topic selected.</div>
+          <Link href="/" className="text-accent font-display font-semibold text-sm">
+            Choose a topic to practice
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col bg-background">
+      <TopNav />
       <BackHeader
         title={selectedTopic.name}
         badge="Use your own words"
