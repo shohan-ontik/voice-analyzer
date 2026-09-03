@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ApiClientError, getMe } from "@/app/lib/apiClient";
+import { apiErrorResponse, getMe } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
 
 export async function GET() {
@@ -12,10 +12,6 @@ export async function GET() {
     const user = await getMe(token);
     return NextResponse.json(user);
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      return NextResponse.json({ error: { message: err.message } }, { status: err.status });
-    }
-    console.error("Get me proxy failed:", err);
-    return NextResponse.json({ error: { message: "Failed to load profile." } }, { status: 502 });
+    return apiErrorResponse(err, "Failed to load profile.");
   }
 }

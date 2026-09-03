@@ -1,10 +1,17 @@
-import { NextResponse } from "next/server";
+import {
+  buildAnalysisPrompt,
+  buildAnalysisSchema,
+  type AnalysisResult,
+} from "@/app/lib/analysis";
+import {
+  ApiClientError,
+  listActiveScoreCategoryNames,
+} from "@/app/lib/apiClient";
+import { clearSessionCookie, getSessionToken } from "@/app/lib/session";
 import { GoogleGenAI } from "@google/genai";
-import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
-import { buildAnalysisPrompt, buildAnalysisSchema, type AnalysisResult } from "@/app/lib/analysis";
-import { listActiveScoreCategoryNames } from "@/app/lib/apiClient";
-import { getSessionToken } from "@/app/lib/session";
+import { NextResponse } from "next/server";
+import { spawn } from "node:child_process";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -13,13 +20,21 @@ export const maxDuration = 60;
 // both levels for the shape Gemini uses on 429s (statusCode/error.code) plus
 // a message fallback in case that shape changes.
 function isQuotaError(err: unknown): boolean {
-  return [err, err instanceof Error ? err.cause : undefined].some((candidate) => {
-    if (!candidate || typeof candidate !== "object") return false;
-    const e = candidate as Record<string, unknown>;
-    if (e.statusCode === 429) return true;
-    if ((e.error as Record<string, unknown> | undefined)?.code === "too_many_requests") return true;
-    return typeof e.message === "string" && /quota|rate.?limit/i.test(e.message);
-  });
+  return [err, err instanceof Error ? err.cause : undefined].some(
+    (candidate) => {
+      if (!candidate || typeof candidate !== "object") return false;
+      const e = candidate as Record<string, unknown>;
+      if (e.statusCode === 429) return true;
+      if (
+        (e.error as Record<string, unknown> | undefined)?.code ===
+        "too_many_requests"
+      )
+        return true;
+      return (
+        typeof e.message === "string" && /quota|rate.?limit/i.test(e.message)
+      );
+    },
+  );
 }
 
 function transcodeToWav(input: Buffer): Promise<Buffer> {
@@ -60,18 +75,24 @@ function transcodeToWav(input: Buffer): Promise<Buffer> {
 
 function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
   const r = raw as Partial<AnalysisResult> & Record<string, unknown>;
-  const clamp = (n: unknown) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
+  const clamp = (n: unknown) =>
+    Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
 
   const byName = new Map(
-    (Array.isArray(r.categories) ? r.categories : []).map((c) => [c?.name, c])
+    (Array.isArray(r.categories) ? r.categories : []).map((c) => [c?.name, c]),
   );
   const categories = categoryNames.map((name) => {
-    const c = byName.get(name) as Partial<AnalysisResult["categories"][number]> | undefined;
+    const c = byName.get(name) as
+      | Partial<AnalysisResult["categories"][number]>
+      | undefined;
     return {
       name,
       score: clamp(c?.score),
-      feedback: typeof c?.feedback === "string" ? c.feedback : "No feedback available.",
-      tips: Array.isArray(c?.tips) ? c!.tips!.filter((t) => typeof t === "string").slice(0, 3) : [],
+      feedback:
+        typeof c?.feedback === "string" ? c.feedback : "No feedback available.",
+      tips: Array.isArray(c?.tips)
+        ? c!.tips!.filter((t) => typeof t === "string").slice(0, 3)
+        : [],
     };
   });
 
@@ -84,7 +105,9 @@ function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
         .filter((s) => s && typeof s.text === "string")
         .map((s) => ({
           text: s.text as string,
-          kind: (["plain", "filler", "pronunciation"] as const).includes(s.kind as never)
+          kind: (["plain", "filler", "pronunciation"] as const).includes(
+            s.kind as never,
+          )
             ? (s.kind as "plain" | "filler" | "pronunciation")
             : "plain",
         }))
@@ -102,8 +125,11 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Server is missing GEMINI_API_KEY. Add it to .env.local and restart the dev server." },
-      { status: 500 }
+      {
+        error:
+          "Server is missing GEMINI_API_KEY. Add it to .env.local and restart the dev server.",
+      },
+      { status: 500 },
     );
   }
 
@@ -126,16 +152,23 @@ export async function POST(request: Request) {
     !passage ||
     !topicName
   ) {
-    return NextResponse.json({ error: "Missing or invalid form fields." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing or invalid form fields." },
+      { status: 400 },
+    );
   }
 
   try {
-    const { items: activeCategories } = await listActiveScoreCategoryNames(token);
+    const { items: activeCategories } =
+      await listActiveScoreCategoryNames(token);
     const categoryNames = activeCategories.map((c) => c.name);
     if (categoryNames.length === 0) {
       return NextResponse.json(
-        { error: "No active scoring categories are configured. Ask an admin to enable at least one." },
-        { status: 400 }
+        {
+          error:
+            "No active scoring categories are configured. Ask an admin to enable at least one.",
+        },
+        { status: 400 },
       );
     }
 
@@ -157,9 +190,12 @@ export async function POST(request: Request) {
 
     const ai = new GoogleGenAI({ apiKey });
     const interaction = await ai.interactions.create({
-      model: "gemini-3.7-flash",
+      model: "gemini-3.1-flash-lite",
       input: [
-        { type: "text", text: buildAnalysisPrompt(passage, topicName, categoryNames) },
+        {
+          type: "text",
+          text: buildAnalysisPrompt(passage, topicName, categoryNames),
+        },
         { type: partType, data, mime_type: mimeType },
       ],
       response_format: {
@@ -180,6 +216,13 @@ export async function POST(request: Request) {
     // "Save & Continue" (see POST /api/sessions).
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof ApiClientError && err.status === 401) {
+      await clearSessionCookie();
+      return NextResponse.json(
+        { error: "Not authenticated." },
+        { status: 401 },
+      );
+    }
     console.error("Gemini analysis failed:", err);
     if (isQuotaError(err)) {
       return NextResponse.json(
@@ -187,9 +230,12 @@ export async function POST(request: Request) {
           error:
             "The AI scoring service has hit its usage limit for now. Please wait a minute and try again, or ask an admin to check the Gemini API plan.",
         },
-        { status: 503 }
+        { status: 503 },
       );
     }
-    return NextResponse.json({ error: "Analysis failed. Please try again." }, { status: 502 });
+    return NextResponse.json(
+      { error: "Analysis failed. Please try again." },
+      { status: 502 },
+    );
   }
 }

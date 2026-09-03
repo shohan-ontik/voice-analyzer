@@ -1,6 +1,8 @@
 import "server-only";
+import { NextResponse } from "next/server";
 import type { AppUser, ApiErrorBody, PracticeSessionRecord, StatsSummary, Topic } from "./types";
 import type { AnalysisCategory, TranscriptSegment } from "./analysis";
+import { clearSessionCookie } from "./session";
 
 const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:4000/api/v1";
 
@@ -12,6 +14,20 @@ export class ApiClientError extends Error {
     this.name = "ApiClientError";
     this.status = status;
   }
+}
+
+// Shared catch-block for route handlers that call the backend with a
+// session token. A 401 here means the backend rejected the token itself
+// (expired/revoked), not just a missing cookie, so clear it — otherwise the
+// stale cookie keeps passing proxy.ts's optimistic presence check and the
+// user gets stuck seeing "Not authenticated." instead of being sent to login.
+export async function apiErrorResponse(err: unknown, fallbackMessage: string) {
+  if (err instanceof ApiClientError) {
+    if (err.status === 401) await clearSessionCookie();
+    return NextResponse.json({ error: { message: err.message } }, { status: err.status });
+  }
+  console.error(fallbackMessage, err);
+  return NextResponse.json({ error: { message: fallbackMessage } }, { status: 502 });
 }
 
 async function request<T>(

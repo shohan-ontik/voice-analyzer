@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Topic } from "./lib/types";
 import type { AnalysisResult } from "./lib/analysis";
+import { authFetch } from "./lib/clientFetch";
 
 export type { Topic } from "./lib/types";
 export type { AnalysisResult } from "./lib/analysis";
@@ -43,7 +44,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/topics")
+    authFetch("/api/topics")
       .then(async (res) => {
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error?.message ?? "Failed to load topics.");

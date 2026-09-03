@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { TopNav } from "../components/TopNav";
 import type { AppUser } from "../lib/types";
+import { authFetch } from "../lib/clientFetch";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    authFetch("/api/auth/me")
       .then(async (res) => {
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error?.message ?? "Failed to load profile.");
@@ -33,7 +33,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <TopNav />
 
       <div className="px-16 py-12 max-w-[640px] w-full mx-auto flex flex-col gap-6">
         <div>

@@ -1,25 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { ReportRow } from "../components/ReportRow";
+import { ModuleCard } from "../components/ModuleCard";
 import { SearchIcon } from "../components/icons";
-import { evaluationReports, type ReportKind } from "../lib/reportsData";
+import { trainingModules, type ModuleStatus } from "../lib/modulesData";
 
-type FilterKey = "all" | ReportKind;
+type FilterKey = "all" | ModuleStatus;
 
 const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: "all", label: "সকল রিপোর্ট" },
-  { key: "practice", label: "প্র্যাকটিস" },
-  { key: "exam", label: "এক্সাম" },
+  { key: "all", label: "সকল মডিউল" },
+  { key: "in_progress", label: "চলমান" },
+  { key: "completed", label: "কমপ্লিট" },
+  { key: "not_started", label: "স্টার্ট হয়নি" },
 ];
 
-export default function HistoryPage() {
+export default function ModulesPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const filteredReports = evaluationReports.filter((r) => {
-    const matchesFilter = filter === "all" || r.kind === filter;
-    const matchesQuery = query.trim() === "" || r.title.toLowerCase().includes(query.trim().toLowerCase());
+  const filteredModules = trainingModules.filter((m) => {
+    const matchesFilter = filter === "all" || m.status === filter;
+    const matchesQuery = query.trim() === "" || m.title.toLowerCase().includes(query.trim().toLowerCase());
     return matchesFilter && matchesQuery;
   });
 
@@ -28,10 +29,10 @@ export default function HistoryPage() {
       <div className="px-4 pt-6 pb-6 lg:px-10 lg:pt-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-[22px] lg:text-[28px] text-foreground mb-1.5">
-            ইভালুয়েশন রিপোর্ট ও হিস্ট্রি
+            সেলস ট্রেনিং মডিউল
           </h1>
           <p className="text-[13.5px] lg:text-[14.5px] text-foreground-muted max-w-[540px]">
-            এআই গ্রেডিং, স্কিল বেঞ্চমার্ক এবং ডিটেইলড ফিডব্যাক চেক করুন।
+            চ্যাপ্টারগুলো কমপ্লিট করুন, ট্রেনিং মেটেরিয়াল দেখুন এবং বাস্তবসম্মত এআই পিচ প্র্যাকটিস করুন।
           </p>
         </div>
 
@@ -42,7 +43,7 @@ export default function HistoryPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="রিপোর্ট বা মডিউল খুঁজুন..."
+              placeholder="মডিউল বা টপিক সার্চ করুন..."
               className="pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background-elevated text-sm w-full sm:w-64 outline-none focus:border-navy"
             />
           </div>
@@ -67,12 +68,14 @@ export default function HistoryPage() {
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {filteredReports.length === 0 ? (
-          <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো রিপোর্ট খুঁজে পাওয়া যায়নি।</div>
+        {filteredModules.length === 0 ? (
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">
+            কোনো মডিউল খুঁজে পাওয়া যায়নি।
+          </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {filteredReports.map((r) => (
-              <ReportRow key={r.id} report={r} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredModules.map((m) => (
+              <ModuleCard key={m.id} module={m} />
             ))}
           </div>
         )}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hind_Siliguri, Space_Grotesk, Work_Sans } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "./providers";
+import { AppChrome } from "./components/AppChrome";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${spaceGrotesk.variable} ${workSans.variable} ${hindSiliguri.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <AppStateProvider>{children}</AppStateProvider>
+        <AppStateProvider>
+          <AppChrome>{children}</AppChrome>
+        </AppStateProvider>
       </body>
     </html>
   );

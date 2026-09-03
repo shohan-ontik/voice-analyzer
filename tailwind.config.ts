@@ -26,6 +26,21 @@ export default {
           DEFAULT: "var(--teal)",
           soft: "var(--teal-soft)",
         },
+        navy: {
+          DEFAULT: "var(--navy)",
+          ink: "var(--navy-ink)",
+          soft: "var(--navy-soft)",
+          border: "var(--navy-border)",
+        },
+        warning: {
+          DEFAULT: "var(--warning)",
+          ink: "var(--warning-ink)",
+          soft: "var(--warning-soft)",
+        },
+        success: {
+          DEFAULT: "var(--success)",
+          soft: "var(--success-soft)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-work-sans)", "ui-sans-serif", "system-ui", "sans-serif"],

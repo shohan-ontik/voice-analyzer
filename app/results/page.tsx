@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnalysisBreakdown } from "../components/AnalysisBreakdown";
 import { BackHeader } from "../components/BackHeader";
-import { TopNav } from "../components/TopNav";
 import { useAppState } from "../providers";
 import type { AnalysisResult } from "../lib/analysis";
+import { authFetch } from "../lib/clientFetch";
 
 const MOCK_ANALYSIS: AnalysisResult = {
   overall: 82,
@@ -76,7 +76,7 @@ export default function ResultsPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await fetch("/api/sessions", {
+      const res = await authFetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,7 +102,6 @@ export default function ResultsPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <TopNav />
       <BackHeader
         title={`${scenarioLabel} — Results`}
         subtitle={recording ? `Recorded today · 0:${String(recording.durationSec).padStart(2, "0")}` : "Sample results"}

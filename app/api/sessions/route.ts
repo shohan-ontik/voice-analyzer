@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ApiClientError, createPracticeSession, listOwnPracticeSessions } from "@/app/lib/apiClient";
+import { apiErrorResponse, createPracticeSession, listOwnPracticeSessions } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
 import type { AnalysisCategory, TranscriptSegment } from "@/app/lib/analysis";
 
@@ -18,11 +18,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(result);
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      return NextResponse.json({ error: { message: err.message } }, { status: err.status });
-    }
-    console.error("List sessions proxy failed:", err);
-    return NextResponse.json({ error: { message: "Failed to load history." } }, { status: 502 });
+    return apiErrorResponse(err, "Failed to load history.");
   }
 }
 
@@ -64,10 +60,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(saved, { status: 201 });
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      return NextResponse.json({ error: { message: err.message } }, { status: err.status });
-    }
-    console.error("Save session proxy failed:", err);
-    return NextResponse.json({ error: { message: "Failed to save this session." } }, { status: 502 });
+    return apiErrorResponse(err, "Failed to save this session.");
   }
 }

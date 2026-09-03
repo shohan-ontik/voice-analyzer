@@ -1,201 +1,287 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { TopNav } from "./components/TopNav";
-import { useAppState } from "./providers";
-import type { StatsSummary } from "./lib/types";
+import {
+  AwardIcon,
+  BookIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  DotIcon,
+  MicIcon,
+  SparkleIcon,
+  TargetIcon,
+  TrendingUpIcon,
+} from "./components/icons";
+import {
+  continueLearningModule,
+  dashboardStats,
+  dashboardUser,
+  upcomingExam,
+  type DashboardStat,
+} from "./lib/dashboardData";
+
+const STAT_ICONS: Record<DashboardStat["icon"], typeof BookIcon> = {
+  book: BookIcon,
+  target: TargetIcon,
+  award: AwardIcon,
+  trending: TrendingUpIcon,
+};
+
+const STAT_TONE_CLASSES: Record<
+  DashboardStat["tone"],
+  { badge: string; text: string; bar: string }
+> = {
+  teal: { badge: "bg-teal-soft", text: "text-teal", bar: "bg-teal" },
+  navy: { badge: "bg-navy-soft", text: "text-navy", bar: "bg-navy" },
+  success: {
+    badge: "bg-success-soft",
+    text: "text-success",
+    bar: "bg-success",
+  },
+  accent: { badge: "bg-accent-soft", text: "text-accent", bar: "bg-accent" },
+};
 
 export default function Home() {
   const router = useRouter();
-  const { topics, topicsLoading, topicsError, selectedTopicId, setSelectedTopicId, selectedTopic } = useAppState();
-  const [starting, setStarting] = useState(false);
-  const [stats, setStats] = useState<StatsSummary | null>(null);
-
-  useEffect(() => {
-    fetch("/api/sessions/stats")
-      .then(async (res) => (res.ok ? res.json() : null))
-      .then((body) => body && setStats(body))
-      .catch(() => {});
-  }, []);
-
-  function startSession() {
-    if (!selectedTopicId) return;
-    setStarting(true);
-    setTimeout(() => router.push("/record"), 550);
-  }
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <TopNav />
-
-      <div className="px-16 pt-16 pb-10 max-w-[760px]">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent-soft text-accent text-xs font-bold tracking-wide uppercase mb-5">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
-          Sales Pitch Trainer
+      <div className="mx-4 mt-4 rounded-2xl border border-border bg-background-elevated p-5 lg:mx-0 lg:mt-0 lg:rounded-none lg:border-0 lg:bg-transparent lg:px-10 lg:pt-10 lg:pb-8 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6">
+        <div>
+          <h1 className="font-display font-bold text-[22px] lg:text-[30px] text-foreground mb-1.5">
+            ওয়েলকাম, {dashboardUser.firstName}! 👋
+          </h1>
+          <p className="text-[13.5px] lg:text-[14.5px] text-foreground-muted">
+            {dashboardUser.role} • {dashboardUser.team}
+          </p>
         </div>
-        <h1 className="font-display font-bold text-[52px] leading-[1.08] tracking-tight mb-4 text-foreground">
-          Practice until your pitch feels unstoppable.
-        </h1>
-        <p className="text-[17px] leading-relaxed text-foreground-muted mb-9 max-w-[560px]">
-          Read a script aloud on camera or mic, and get instant AI feedback on
-          your presentation, accuracy, pronunciation and soft skills — right
-          after you finish.
-        </p>
-
-        {starting ? (
-          <div className="inline-flex items-center gap-3 px-7 py-4 rounded-xl bg-accent-soft text-accent font-display font-semibold text-base">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="animate-spin"
-            >
-              <path d="M21 12a9 9 0 1 1-9-9" />
-            </svg>
-            Preparing your script — {selectedTopic?.name}...
-          </div>
-        ) : (
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={startSession}
-            disabled={!selectedTopicId}
-            className="inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-accent text-accent-ink font-display font-semibold text-base hover:-translate-y-px transition-transform disabled:opacity-50 disabled:hover:translate-y-0"
+            onClick={() => router.push("/record")}
+            className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-navy text-navy-ink font-display font-semibold text-sm hover:-translate-y-px transition-transform"
           >
-            Start New Session
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            <MicIcon size={16} />
+            পিচ প্র্যাকটিস করুন
+            <SparkleIcon size={14} />
           </button>
-        )}
+          <button
+            type="button"
+            className="hidden lg:inline-flex items-center gap-2 px-5 py-3.5 rounded-xl border-[1.5px] border-navy/20 bg-navy-soft text-navy font-display font-semibold text-sm"
+          >
+            <DotIcon size={9} />
+            সক্রিয় প্রশিক্ষণ ট্র্যাক
+          </button>
+        </div>
       </div>
 
-      <div className="px-16 pb-11">
-        <div className="text-[13px] font-bold tracking-wide uppercase text-foreground-muted mb-4">
-          Choose a topic
-        </div>
-        {topicsLoading ? (
-          <div className="text-sm text-foreground-muted">Loading topics…</div>
-        ) : topicsError ? (
-          <div className="text-sm text-red-600">{topicsError}</div>
-        ) : topics.length === 0 ? (
-          <div className="text-sm text-foreground-muted">
-            No practice topics are available yet — ask an admin to add one.
-          </div>
-        ) : (
-          <div className="flex gap-3 flex-wrap">
-            {topics.map((t) => {
-              const isSel = t.id === selectedTopicId;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setSelectedTopicId(t.id)}
-                  className={`px-5 py-3 rounded-full text-sm font-semibold border-[1.5px] transition-colors ${
-                    isSel
-                      ? "bg-accent border-accent text-accent-ink"
-                      : "bg-transparent border-border text-foreground-muted"
-                  }`}
+      <div className="px-4 pt-6 pb-6 lg:px-10 lg:pt-0 lg:pb-8 grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {dashboardStats.map((stat) => {
+          const Icon = STAT_ICONS[stat.icon];
+          const tone = STAT_TONE_CLASSES[stat.tone];
+          return (
+            <div
+              key={stat.key}
+              className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-[13px] font-semibold text-foreground-muted">
+                  {stat.label}
+                </div>
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${tone.badge} ${tone.text}`}
                 >
-                  {t.name}
-                </button>
-              );
-            })}
+                  <Icon size={16} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-display font-bold text-[26px] text-foreground">
+                    {stat.value}
+                  </span>
+                  {stat.inline && (
+                    <span
+                      className={`text-[12.5px] font-semibold ${
+                        stat.inline.tone === "positive"
+                          ? tone.text
+                          : "text-foreground-muted"
+                      }`}
+                    >
+                      {stat.inline.text}
+                    </span>
+                  )}
+                </div>
+
+                {stat.note && (
+                  <div className="text-xs text-foreground-muted mt-1.5">
+                    {stat.note}
+                  </div>
+                )}
+
+                {stat.progressPercent !== undefined && (
+                  <div className="h-1.5 rounded-full bg-border overflow-hidden mt-2.5">
+                    <div
+                      className={`h-full rounded-full ${tone.bar}`}
+                      style={{ width: `${stat.progressPercent}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="px-4 pb-8 lg:px-10 lg:pb-12 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 lg:gap-6 items-start">
+        <div className="rounded-2xl border border-border bg-background-elevated p-6 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-navy" />
+              <span className="font-display font-bold text-[16px] text-foreground">
+                লার্নিং কন্টিনিউ করুন
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/modules")}
+              className="text-[13px] font-semibold text-navy flex items-center gap-1"
+            >
+              <span>সকল মডিউল দেখুন</span>
+              <span aria-hidden>›</span>
+            </button>
           </div>
-        )}
-      </div>
 
-      <div className="px-16 pb-16 grid grid-cols-3 gap-5 max-w-[760px]">
-        <StatCard
-          label="Last score"
-          value={stats?.lastScore != null ? String(stats.lastScore) : "—"}
-          icon={<path d="M3 3v18h18M19 9l-5 5-4-4-3 3" strokeWidth="2" />}
-        />
-        <StatCard
-          label="Sessions this week"
-          value={stats ? String(stats.sessionsThisWeek) : "—"}
-          icon={
-            <>
-              <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2" />
-              <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" />
-              <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" />
-              <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" />
-            </>
-          }
-        />
-        <StatCard
-          label="Total sessions"
-          value={stats ? String(stats.totalSessions) : "—"}
-          accent
-          icon={
-            <path
-              d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a6 6 0 0 1-12 0c0-1 .5-2.5 1.5-3.5"
-              strokeWidth="2"
+          <div className="flex gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
+            <img
+              src={continueLearningModule.thumbnailUrl}
+              alt=""
+              className="w-[110px] h-[110px] rounded-xl object-cover shrink-0 bg-border"
             />
-          }
-        />
-      </div>
-    </div>
-  );
-}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2.5 py-1 rounded-full bg-navy-soft text-navy text-[11px] font-bold">
+                  {continueLearningModule.statusBadge}
+                </span>
+                <span className="text-[12px] text-foreground-muted">
+                  • {continueLearningModule.moduleLabel}
+                </span>
+              </div>
+              <div className="font-display font-bold text-[16px] text-foreground mb-1.5">
+                {continueLearningModule.title}
+              </div>
+              <p className="text-[13px] text-foreground-muted leading-relaxed mb-3">
+                {continueLearningModule.description}
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-navy"
+                    style={{
+                      width: `${continueLearningModule.progressPercent}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-foreground-muted shrink-0">
+                  {continueLearningModule.progressLabel} ·{" "}
+                  {continueLearningModule.progressPercent}%
+                </span>
+              </div>
+            </div>
+          </div>
 
-function StatCard({
-  label,
-  value,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  accent?: boolean;
-}) {
-  return (
-    <div className="p-[22px] rounded-2xl bg-background-elevated border border-border">
-      <div className="flex items-center gap-2 mb-2.5">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={accent ? "var(--accent)" : "var(--teal)"}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {icon}
-        </svg>
-        <div className="text-xs font-semibold text-foreground-muted">
-          {label}
+          <div className="rounded-xl bg-background border border-border p-4 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-navy text-navy-ink flex items-center justify-center font-display font-bold text-[14px] shrink-0">
+                {continueLearningModule.currentChapter.number}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-foreground-muted mb-0.5">
+                  বর্তমান অধ্যায়
+                </div>
+                <div className="font-semibold text-[14px] text-foreground truncate">
+                  {continueLearningModule.currentChapter.title}
+                </div>
+                <div className="text-[12px] text-foreground-muted">
+                  {continueLearningModule.currentChapter.meta}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                className="px-4 py-2.5 rounded-lg border-[1.5px] border-border text-foreground font-display font-semibold text-[13px]"
+              >
+                কনটেন্ট দেখুন
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/record")}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px]"
+              >
+                <SparkleIcon size={13} />
+                পিচ প্র্যাকটিস
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="font-display font-bold text-[28px] text-foreground">
-        {value}
+
+        <div className="rounded-2xl border border-border bg-background-elevated p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent" />
+              <span className="font-display font-bold text-[16px] text-foreground">
+                আপকামিং এক্সাম
+              </span>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-warning-soft text-warning-ink text-[11px] font-bold">
+              {upcomingExam.urgencyBadge}
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-border p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 text-[12px] text-accent font-semibold">
+              <CalendarIcon size={14} />
+              শেষ তারিখ: {upcomingExam.dueDate}
+            </div>
+            <div>
+              <div className="font-display font-bold text-[15px] text-foreground mb-1">
+                {upcomingExam.title}
+              </div>
+              <p className="text-[13px] text-foreground-muted leading-relaxed">
+                {upcomingExam.description}
+              </p>
+            </div>
+            <div className="h-px bg-border" />
+            <div className="flex items-center justify-between text-[12.5px]">
+              <span className="text-foreground-muted">
+                {upcomingExam.prerequisiteLabel}
+              </span>
+              <span className="flex items-center gap-1.5 text-success font-semibold">
+                <CheckCircleIcon size={14} />
+                {upcomingExam.prerequisiteStatus}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/exams")}
+            className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-navy text-warning font-display font-semibold text-sm"
+          >
+            <AwardIcon size={16} />
+            এক্সামে যান
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/history")}
+            className="text-center text-[13px] font-semibold text-foreground-muted hover:text-foreground"
+          >
+            পূর্ববর্তী রিপোর্ট পর্যালোচনা
+          </button>
+        </div>
       </div>
     </div>
   );

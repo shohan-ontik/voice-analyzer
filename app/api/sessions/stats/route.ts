@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ApiClientError, getOwnStatsSummary } from "@/app/lib/apiClient";
+import { apiErrorResponse, getOwnStatsSummary } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
 
 export async function GET() {
@@ -12,10 +12,6 @@ export async function GET() {
     const stats = await getOwnStatsSummary(token);
     return NextResponse.json(stats);
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      return NextResponse.json({ error: { message: err.message } }, { status: err.status });
-    }
-    console.error("Stats proxy failed:", err);
-    return NextResponse.json({ error: { message: "Failed to load stats." } }, { status: 502 });
+    return apiErrorResponse(err, "Failed to load stats.");
   }
 }
