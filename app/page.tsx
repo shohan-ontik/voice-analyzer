@@ -3,14 +3,14 @@
 import { useRouter } from "next/navigation";
 import {
   AwardIcon,
+  BarChartIcon,
   BookIcon,
   CalendarIcon,
   CheckCircleIcon,
   DotIcon,
   MicIcon,
   SparkleIcon,
-  TargetIcon,
-  TrendingUpIcon,
+  ZapIcon,
 } from "./components/icons";
 import {
   continueLearningModule,
@@ -22,23 +22,16 @@ import {
 
 const STAT_ICONS: Record<DashboardStat["icon"], typeof BookIcon> = {
   book: BookIcon,
-  target: TargetIcon,
+  zap: ZapIcon,
   award: AwardIcon,
-  trending: TrendingUpIcon,
+  chart: BarChartIcon,
 };
 
-const STAT_TONE_CLASSES: Record<
-  DashboardStat["tone"],
-  { badge: string; text: string; bar: string }
-> = {
-  teal: { badge: "bg-teal-soft", text: "text-teal", bar: "bg-teal" },
-  navy: { badge: "bg-navy-soft", text: "text-navy", bar: "bg-navy" },
-  success: {
-    badge: "bg-success-soft",
-    text: "text-success",
-    bar: "bg-success",
-  },
-  accent: { badge: "bg-accent-soft", text: "text-accent", bar: "bg-accent" },
+const STAT_TONE_CLASSES: Record<DashboardStat["tone"], { badge: string; text: string }> = {
+  teal: { badge: "bg-teal-soft", text: "text-teal" },
+  navy: { badge: "bg-navy-soft", text: "text-navy" },
+  success: { badge: "bg-success-soft", text: "text-success" },
+  accent: { badge: "bg-accent-soft", text: "text-accent" },
 };
 
 export default function Home() {
@@ -82,51 +75,22 @@ export default function Home() {
           return (
             <div
               key={stat.key}
-              className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-4"
+              className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-3.5"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-[13px] font-semibold text-foreground-muted">
-                  {stat.label}
-                </div>
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${tone.badge} ${tone.text}`}
-                >
-                  <Icon size={16} />
-                </div>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tone.badge} ${tone.text}`}>
+                <Icon size={19} />
               </div>
 
               <div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-display font-bold text-[26px] text-foreground">
-                    {stat.value}
-                  </span>
-                  {stat.inline && (
-                    <span
-                      className={`text-[12.5px] font-semibold ${
-                        stat.inline.tone === "positive"
-                          ? tone.text
-                          : "text-foreground-muted"
-                      }`}
-                    >
-                      {stat.inline.text}
-                    </span>
+                <div className="font-display font-bold text-[30px] leading-none text-foreground">
+                  {stat.value}
+                  {stat.suffix && (
+                    <span className="text-[18px] font-semibold text-foreground-muted">{stat.suffix}</span>
                   )}
                 </div>
-
-                {stat.note && (
-                  <div className="text-xs text-foreground-muted mt-1.5">
-                    {stat.note}
-                  </div>
-                )}
-
-                {stat.progressPercent !== undefined && (
-                  <div className="h-1.5 rounded-full bg-border overflow-hidden mt-2.5">
-                    <div
-                      className={`h-full rounded-full ${tone.bar}`}
-                      style={{ width: `${stat.progressPercent}%` }}
-                    />
-                  </div>
-                )}
+                <div className="text-[12px] font-semibold text-foreground-muted mt-1.5 lg:whitespace-nowrap">
+                  {stat.label}
+                </div>
               </div>
             </div>
           );

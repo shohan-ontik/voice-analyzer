@@ -19,6 +19,8 @@ const BREADCRUMB_LABELS: Record<string, string> = {
 function breadcrumbFor(pathname: string) {
   if (BREADCRUMB_LABELS[pathname]) return BREADCRUMB_LABELS[pathname];
   if (pathname.startsWith("/history/")) return "রিপোর্ট";
+  if (pathname.startsWith("/modules/")) return "মডিউল";
+  if (pathname.startsWith("/exams/")) return "এক্সামসমূহ";
   return "ড্যাশবোর্ড";
 }
 

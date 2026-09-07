@@ -5,7 +5,12 @@
 // callers render it as an inline "Not authenticated." error.
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const res = await fetch(input, init);
-  if (res.status === 401) {
+  // Guard against redirecting to where we already are: AppStateProvider's
+  // topics fetch runs on every route including /login, where a 401 is
+  // expected (no session yet) rather than a sign the session died — without
+  // this check that 401 triggers a reload that refetches and 401s again,
+  // forever.
+  if (res.status === 401 && window.location.pathname !== "/login") {
     // A full navigation (not router.push) so proxy.ts re-runs against the
     // now-cleared cookie and any stale client state (useAppState, etc.) is
     // dropped rather than carried into the login page.

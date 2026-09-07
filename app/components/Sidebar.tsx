@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { SparkleIcon, UserIcon } from "./icons";
-import { NAV_ITEMS } from "./navItems";
+import { isNavItemActive, NAV_ITEMS } from "./navItems";
 import { dashboardUser } from "../lib/dashboardData";
 
 export function Sidebar({ pathname }: { pathname: string }) {
@@ -25,7 +25,7 @@ export function Sidebar({ pathname }: { pathname: string }) {
 
       <nav className="flex-1 px-4 pt-6 flex flex-col gap-1">
         {NAV_ITEMS.map((item) => {
-          const active = item.href !== null && pathname === item.href;
+          const active = isNavItemActive(pathname, item.href);
           const Icon = item.icon;
           const className = `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
             active

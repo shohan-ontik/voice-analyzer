@@ -84,6 +84,24 @@ export function TrendingUpIcon(props: IconProps) {
   );
 }
 
+export function ZapIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+export function BarChartIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <line x1="6" y1="20" x2="6" y2="14" />
+      <line x1="12" y1="20" x2="12" y2="9" />
+      <line x1="18" y1="20" x2="18" y2="4" />
+    </svg>
+  );
+}
+
 export function BellIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -150,6 +168,34 @@ export function ArrowRightIcon(props: IconProps) {
   );
 }
 
+export function ArrowLeftIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
+  );
+}
+
+export function VideoIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+      <path d="m22 8-6 4 6 4Z" />
+    </svg>
+  );
+}
+
+export function HeadphoneIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 15v-3a8 8 0 0 1 16 0v3" />
+      <rect x="2" y="14" width="5" height="7" rx="1.5" />
+      <rect x="17" y="14" width="5" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 export function DotIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -191,6 +237,111 @@ export function LogoutIcon(props: IconProps) {
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
+export function EyeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function PlayIcon(props: IconProps) {
+  return (
+    <svg {...base({ ...props, fill: "currentColor", stroke: "none" })}>
+      <polygon points="6 3 21 12 6 21 6 3" />
+    </svg>
+  );
+}
+
+export function PauseIcon(props: IconProps) {
+  return (
+    <svg {...base({ ...props, fill: "currentColor", stroke: "none" })}>
+      <rect x="5" y="3" width="5" height="18" rx="1" />
+      <rect x="14" y="3" width="5" height="18" rx="1" />
+    </svg>
+  );
+}
+
+export function XIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+export function SpeakerIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M19 6a8.5 8.5 0 0 1 0 12" />
+    </svg>
+  );
+}
+
+export function RefreshIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M21 12a9 9 0 0 1-15.3 6.4M3 12a9 9 0 0 1 15.3-6.4" />
+      <polyline points="21 3 21 9 15 9" />
+      <polyline points="3 21 3 15 9 15" />
+    </svg>
+  );
+}
+
+export function GlobeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <path d="M12 3a13 13 0 0 1 0 18a13 13 0 0 1 0-18Z" />
+    </svg>
+  );
+}
+
+export function BrainIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M9.5 3a3 3 0 0 0-3 3v.3A3 3 0 0 0 5 12a3 3 0 0 0 1.5 5.7V18a3 3 0 0 0 3 3" />
+      <path d="M14.5 3a3 3 0 0 1 3 3v.3A3 3 0 0 1 19 12a3 3 0 0 1-1.5 5.7V18a3 3 0 0 1-3 3" />
+      <path d="M9.5 3v18M14.5 3v18" />
+    </svg>
+  );
+}
+
+export function PackageIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m3.3 7 8.7 5 8.7-5" />
+      <path d="M12 22V12" />
+      <path d="m20.7 7-8.7-5-8.7 5v10l8.7 5 8.7-5Z" />
+    </svg>
+  );
+}
+
+export function ShieldIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5Z" />
+    </svg>
+  );
+}
+
+export function ShareIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="6" r="3" />
+      <circle cx="18" cy="18" r="3" />
+      <line x1="8.6" y1="10.6" x2="15.4" y2="7.4" />
+      <line x1="8.6" y1="13.4" x2="15.4" y2="16.6" />
     </svg>
   );
 }

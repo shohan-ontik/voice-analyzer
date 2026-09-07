@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { ArrowRightIcon, AwardIcon, CheckCircleIcon, ClockIcon, LockIcon } from "./icons";
 import type { ModuleStatus, TrainingModule } from "../lib/modulesData";
 
-const STATUS_META: Record<
+export const MODULE_STATUS_META: Record<
   ModuleStatus,
   { label: string; badgeClass: string; barClass: string; Icon: typeof CheckCircleIcon }
 > = {
@@ -16,7 +17,7 @@ const STATUS_META: Record<
 };
 
 export function ModuleCard({ module: trainingModule }: { module: TrainingModule }) {
-  const meta = STATUS_META[trainingModule.status];
+  const meta = MODULE_STATUS_META[trainingModule.status];
   const progressPercent =
     trainingModule.totalChapters === 0
       ? 0
@@ -65,10 +66,13 @@ export function ModuleCard({ module: trainingModule }: { module: TrainingModule 
           ) : (
             <span />
           )}
-          <button type="button" className="flex items-center gap-1 text-[12.5px] font-bold text-navy shrink-0">
+          <Link
+            href={`/modules/${trainingModule.id}`}
+            className="flex items-center gap-1 text-[12.5px] font-bold text-navy shrink-0"
+          >
             চ্যাপ্টারগুলো দেখুন
             <ArrowRightIcon size={13} />
-          </button>
+          </Link>
         </div>
       </div>
     </div>

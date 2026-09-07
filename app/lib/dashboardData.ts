@@ -23,53 +23,16 @@ export type DashboardStat = {
   key: string;
   label: string;
   value: string;
-  // Text shown right next to the value — "muted" for a plain qualifier
-  // (e.g. "/ 18"), "positive" for a highlighted delta (e.g. "+6 this week").
-  inline?: { text: string; tone: "muted" | "positive" };
-  // At most one of these renders below the value.
-  note?: string;
-  progressPercent?: number;
-  icon: "book" | "target" | "award" | "trending";
+  suffix?: string;
+  icon: "book" | "zap" | "award" | "chart";
   tone: "teal" | "navy" | "success" | "accent";
 };
 
 export const dashboardStats: DashboardStat[] = [
-  {
-    key: "chapters",
-    label: "কমপ্লিট চ্যাপ্টার",
-    value: "12",
-    inline: { text: "/ 18", tone: "muted" },
-    progressPercent: 67,
-    icon: "book",
-    tone: "teal",
-  },
-  {
-    key: "practice",
-    label: "প্র্যাকটিস পিচ",
-    value: "45",
-    inline: { text: "+6 এই সপ্তাহে", tone: "positive" },
-    note: "টানা ৭ দিন অনুশীলনের রেকর্ড",
-    icon: "target",
-    tone: "navy",
-  },
-  {
-    key: "exams",
-    label: "পাস করা এক্সাম",
-    value: "4",
-    inline: { text: "100% পাশের হার", tone: "positive" },
-    note: "১টি পরীক্ষা মুলতুবি রয়েছে",
-    icon: "award",
-    tone: "success",
-  },
-  {
-    key: "score",
-    label: "আভারেজ স্কোর",
-    value: "88%",
-    inline: { text: "+4% গড়ের চেয়ে বেশি", tone: "positive" },
-    progressPercent: 88,
-    icon: "trending",
-    tone: "accent",
-  },
+  { key: "chapters", label: "কমপ্লিট চ্যাপ্টার", value: "12", icon: "book", tone: "teal" },
+  { key: "practice", label: "প্র্যাকটিস পিচ", value: "45", icon: "zap", tone: "navy" },
+  { key: "exams", label: "পাস করা এক্সাম", value: "4", icon: "award", tone: "success" },
+  { key: "score", label: "আভারেজ স্কোর", value: "88", suffix: "%", icon: "chart", tone: "accent" },
 ];
 
 export type ContinueLearningModule = {

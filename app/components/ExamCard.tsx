@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon } from "./icons";
 import type { ExamStatus, ModuleExam } from "../lib/examsData";
 
@@ -37,13 +38,13 @@ export function ExamCard({ exam }: { exam: ModuleExam }) {
           পাস মার্ক: <span className="font-semibold text-foreground">{exam.passMark}%</span>
         </span>
 
-        {exam.status === "passed" && (
-          <button
-            type="button"
+        {exam.status === "passed" && exam.report && (
+          <Link
+            href={`/exams/${exam.id}/report`}
             className="px-4 py-2.5 rounded-lg bg-success text-white font-display font-semibold text-[13px]"
           >
             পাসড রিপোর্ট দেখুন
-          </button>
+          </Link>
         )}
 
         {exam.status === "locked" && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Topic } from "./lib/types";
 import type { AnalysisResult } from "./lib/analysis";
 import { authFetch } from "./lib/clientFetch";
@@ -34,15 +35,25 @@ type AppState = {
 const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [topicsLoading, setTopicsLoading] = useState(true);
+  // /login has no session yet, so there's nothing to load there — start
+  // "not loading" instead of flipping it off in an effect.
+  const [topicsLoading, setTopicsLoading] = useState(pathname !== "/login");
   const [topicsError, setTopicsError] = useState<string | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [recording, setRecordingState] = useState<Recording | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const lastUrl = useRef<string | null>(null);
+  const fetchedTopicsRef = useRef(false);
 
   useEffect(() => {
+    // Skip while on /login (no session yet, a 401 here is expected) and
+    // fetch only once — otherwise this would refire on every navigation.
+    if (pathname === "/login" || fetchedTopicsRef.current) return;
+    fetchedTopicsRef.current = true;
+    setTopicsLoading(true);
+
     let cancelled = false;
     authFetch("/api/topics")
       .then(async (res) => {
@@ -62,7 +73,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
 
   const setRecording = useCallback((blob: Blob, mode: RecordingMode, durationSec: number) => {
     if (lastUrl.current) URL.revokeObjectURL(lastUrl.current);
