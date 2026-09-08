@@ -1,5 +1,5 @@
 import { CheckCircleIcon, EyeIcon, FileIcon, HeadphoneIcon, VideoIcon } from "./icons";
-import type { LearningMaterial, LearningMaterialType } from "../lib/modulesData";
+import type { LearningMaterial, LearningMaterialType } from "../lib/types";
 
 export const MATERIAL_TYPE_META: Record<
   LearningMaterialType,

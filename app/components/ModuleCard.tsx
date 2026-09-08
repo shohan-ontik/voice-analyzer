@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRightIcon, AwardIcon, CheckCircleIcon, ClockIcon, LockIcon } from "./icons";
-import type { ModuleStatus, TrainingModule } from "../lib/modulesData";
+import { getChapterProgress, getModuleStatus, type ModuleStatus } from "../lib/moduleProgress";
+import type { TrainingModule } from "../lib/types";
 
 export const MODULE_STATUS_META: Record<
   ModuleStatus,
@@ -17,17 +18,15 @@ export const MODULE_STATUS_META: Record<
 };
 
 export function ModuleCard({ module: trainingModule }: { module: TrainingModule }) {
-  const meta = MODULE_STATUS_META[trainingModule.status];
-  const progressPercent =
-    trainingModule.totalChapters === 0
-      ? 0
-      : Math.round((trainingModule.completedChapters / trainingModule.totalChapters) * 100);
+  const meta = MODULE_STATUS_META[getModuleStatus(trainingModule)];
+  const { completed, total } = getChapterProgress(trainingModule);
+  const progressPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
   return (
     <div className="rounded-2xl border border-border bg-background-elevated overflow-hidden flex flex-col">
       <div className="relative h-[160px] bg-border">
         {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
-        <img src={trainingModule.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+        <img src={trainingModule.thumbnailUrl ?? undefined} alt="" className="w-full h-full object-cover" />
 
         <span
           className={`absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${meta.badgeClass}`}
@@ -38,7 +37,7 @@ export function ModuleCard({ module: trainingModule }: { module: TrainingModule 
 
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2">
           <span className="text-[11.5px] font-semibold text-white">
-            {trainingModule.completedChapters} / {trainingModule.totalChapters} চ্যাপ্টার কমপ্লিট
+            {completed} / {total} চ্যাপ্টার কমপ্লিট
           </span>
         </div>
       </div>
@@ -58,16 +57,12 @@ export function ModuleCard({ module: trainingModule }: { module: TrainingModule 
         </div>
 
         <div className="flex items-center justify-between mt-auto pt-1">
-          {trainingModule.hasExam ? (
-            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-warning-ink">
-              <AwardIcon size={13} />
-              পরীক্ষাসহ
-            </span>
-          ) : (
-            <span />
-          )}
+          <span className="flex items-center gap-1.5 text-[12px] font-semibold text-warning-ink">
+            <AwardIcon size={13} />
+            পরীক্ষাসহ
+          </span>
           <Link
-            href={`/modules/${trainingModule.id}`}
+            href={`/modules/${trainingModule.slug}`}
             className="flex items-center gap-1 text-[12.5px] font-bold text-navy shrink-0"
           >
             চ্যাপ্টারগুলো দেখুন

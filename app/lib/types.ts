@@ -45,3 +45,64 @@ export type PracticeSessionRecord = {
 export type ApiErrorBody = {
   error: { message: string; details?: unknown };
 };
+
+// Mirrors voice-analyzer-api's LearningMaterial model.
+export type LearningMaterialType = "video" | "pdf" | "audio";
+
+export type LearningMaterial = {
+  id: string;
+  type: LearningMaterialType;
+  title: string;
+  // e.g. "10 mins" for video/audio, "6 pages" for a pdf.
+  meta: string;
+  filename: string;
+};
+
+// Mirrors voice-analyzer-api's ModuleChapter#scenario (JSONB) — the AI
+// roleplay scenario a rep practices against for a chapter.
+export type PitchScenario = {
+  clientInitials: string;
+  clientName: string;
+  clientTitle: string;
+  objection: string;
+  objective: string;
+  criteria: string[];
+};
+
+// Mirrors GET /modules and GET /modules/:slug's chapter shape. `completedAt`
+// is the only completion signal — null means not completed.
+export type ModuleChapter = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  order: number;
+  scenario: PitchScenario;
+  materials: LearningMaterial[];
+  completedAt: string | null;
+};
+
+// `bestScore`/`passed` are derived server-side from the caller's own
+// PracticeSession attempts against this exam — not stored fields.
+export type ModuleExam = {
+  id: string;
+  slug: string;
+  title: string;
+  moduleLabel: string;
+  scenario: string;
+  passMark: number;
+  dueDate: string | null;
+  bestScore: number | null;
+  passed: boolean;
+};
+
+export type TrainingModule = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string | null;
+  order: number;
+  chapters: ModuleChapter[];
+  exam: ModuleExam;
+};

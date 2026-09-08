@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ScenarioBriefingModal } from "./ScenarioBriefingModal";
 import { SparkleIcon } from "./icons";
-import type { PitchScenario } from "../lib/modulesData";
+import type { PitchScenario } from "../lib/types";
 
 export function RoleplayCtaBanner({ topicTitle, scenario }: { topicTitle: string; scenario: PitchScenario }) {
   const [open, setOpen] = useState(false);

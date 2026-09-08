@@ -1,10 +1,10 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import type { AppUser, ApiErrorBody, PracticeSessionRecord, StatsSummary, Topic } from "./types";
+import type { AppUser, ApiErrorBody, PracticeSessionRecord, StatsSummary, Topic, TrainingModule } from "./types";
 import type { AnalysisCategory, TranscriptSegment } from "./analysis";
 import { clearSessionCookie } from "./session";
 
-const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:4000/api/v1";
+export const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:4000/api/v1";
 
 export class ApiClientError extends Error {
   status: number;
@@ -116,4 +116,19 @@ export function getOwnStatsSummary(token: string) {
 
 export function changePassword(token: string, input: { currentPassword: string; newPassword: string }) {
   return request<{ success: true }>("/auth/me/password", { method: "PATCH", token, body: input });
+}
+
+export function listModules(token: string) {
+  return request<{ items: TrainingModule[] }>("/modules", { token });
+}
+
+export function getModule(token: string, slug: string) {
+  return request<TrainingModule>(`/modules/${encodeURIComponent(slug)}`, { token });
+}
+
+export function markChapterComplete(token: string, moduleSlug: string, chapterSlug: string) {
+  return request<{ completed: true; completedAt: string }>(
+    `/modules/${encodeURIComponent(moduleSlug)}/chapters/${encodeURIComponent(chapterSlug)}/complete`,
+    { method: "POST", token }
+  );
 }

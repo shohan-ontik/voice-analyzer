@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircleIcon, GlobeIcon, RefreshIcon, SparkleIcon, SpeakerIcon, VideoIcon, XIcon } from "./icons";
-import type { PitchScenario } from "../lib/modulesData";
+import type { PitchScenario } from "../lib/types";
 
 const LANGUAGES = [
   { key: "bn", label: "বাংলা" },

@@ -1,7 +1,12 @@
+"use client";
+
 import { ExamCard } from "../components/ExamCard";
-import { moduleExams } from "../lib/examsData";
+import { getExamStatus } from "../lib/moduleProgress";
+import { useModules } from "../lib/useModules";
 
 export default function ExamsPage() {
+  const { modules, error } = useModules();
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="px-4 pt-6 pb-6 lg:px-10 lg:pt-10">
@@ -13,10 +18,18 @@ export default function ExamsPage() {
         </p>
       </div>
 
-      <div className="px-4 pb-10 lg:px-10 lg:pb-12 grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {moduleExams.map((exam) => (
-          <ExamCard key={exam.id} exam={exam} />
-        ))}
+      <div className="px-4 pb-10 lg:px-10 lg:pb-12">
+        {error ? (
+          <div className="text-center text-[13.5px] text-red-600 py-16">{error}</div>
+        ) : !modules ? (
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">লোড হচ্ছে…</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {modules.map((m) => (
+              <ExamCard key={m.exam.id} exam={m.exam} status={getExamStatus(m)} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

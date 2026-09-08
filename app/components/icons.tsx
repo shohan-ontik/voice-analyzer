@@ -334,6 +334,30 @@ export function ShieldIcon(props: IconProps) {
   );
 }
 
+export function BuildingIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4" y="3" width="12" height="18" rx="1" />
+      <path d="M16 8h4v13h-4" />
+      <line x1="8" y1="7" x2="8" y2="7.01" />
+      <line x1="12" y1="7" x2="12" y2="7.01" />
+      <line x1="8" y1="11" x2="8" y2="11.01" />
+      <line x1="12" y1="11" x2="12" y2="11.01" />
+      <line x1="8" y1="15" x2="8" y2="15.01" />
+      <line x1="12" y1="15" x2="12" y2="15.01" />
+    </svg>
+  );
+}
+
+export function MailIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m3 6 9 6 9-6" />
+    </svg>
+  );
+}
+
 export function ShareIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

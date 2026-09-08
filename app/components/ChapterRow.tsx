@@ -1,37 +1,20 @@
 import Link from "next/link";
-import type { ChapterStatus, ModuleChapter } from "../lib/modulesData";
+import type { ModuleChapter } from "../lib/types";
 import {
   CheckCircleIcon,
-  ClockIcon,
   FileIcon,
   HeadphoneIcon,
   LockIcon,
   VideoIcon,
 } from "./icons";
 
-const STATUS_META: Record<
-  ChapterStatus,
-  {
-    label: string;
-    badgeClass: string;
-    iconWrapClass: string;
-    Icon: typeof CheckCircleIcon;
-    cta: string;
-  }
-> = {
+const STATUS_META = {
   completed: {
     label: "কমপ্লিট",
     badgeClass: "bg-success text-white",
     iconWrapClass: "bg-success-soft text-success",
     Icon: CheckCircleIcon,
     cta: "অধ্যায় পর্যালোচনা",
-  },
-  in_progress: {
-    label: "ইন-প্রোগ্রেস",
-    badgeClass: "bg-navy text-navy-ink",
-    iconWrapClass: "bg-navy-soft text-navy",
-    Icon: ClockIcon,
-    cta: "অধ্যায় চালিয়ে যান",
   },
   not_started: {
     label: "স্টার্ট হয়নি",
@@ -40,14 +23,17 @@ const STATUS_META: Record<
     Icon: LockIcon,
     cta: "অধ্যায় শুরু করুন",
   },
-};
+} as const;
 
 export function ChapterRow({ moduleId, chapter }: { moduleId: string; chapter: ModuleChapter }) {
-  const meta = STATUS_META[chapter.status];
+  const meta = chapter.completedAt !== null ? STATUS_META.completed : STATUS_META.not_started;
+  const videoCount = chapter.materials.filter((m) => m.type === "video").length;
+  const guideCount = chapter.materials.filter((m) => m.type === "pdf").length;
+  const audioCount = chapter.materials.filter((m) => m.type === "audio").length;
 
   return (
     <Link
-      href={`/modules/${moduleId}/chapters/${chapter.id}`}
+      href={`/modules/${moduleId}/chapters/${chapter.slug}`}
       className="rounded-2xl border border-border bg-background-elevated p-5 flex items-start gap-4 flex-wrap cursor-pointer transition-all duration-200 hover:border-navy hover:shadow-[0_10px_24px_-10px_color-mix(in_oklch,var(--navy)_45%,transparent)]"
     >
       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${meta.iconWrapClass}`}>
@@ -65,17 +51,17 @@ export function ChapterRow({ moduleId, chapter }: { moduleId: string; chapter: M
         <div className="flex items-center gap-3 text-[12px] text-foreground-muted">
           <span className="flex items-center gap-1">
             <VideoIcon size={13} />
-            {chapter.videoCount}টি ভিডিও
+            {videoCount}টি ভিডিও
           </span>
           <span aria-hidden>•</span>
           <span className="flex items-center gap-1">
             <FileIcon size={13} />
-            {chapter.guideCount}টি গাইড
+            {guideCount}টি গাইড
           </span>
           <span aria-hidden>•</span>
           <span className="flex items-center gap-1">
             <HeadphoneIcon size={13} />
-            {chapter.audioCount}টি অডিও
+            {audioCount}টি অডিও
           </span>
         </div>
       </div>

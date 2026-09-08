@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { MATERIAL_TYPE_META } from "./MaterialRow";
 import { ScenarioBriefingModal } from "./ScenarioBriefingModal";
-import { CheckCircleIcon, FileIcon, PauseIcon, PlayIcon, SparkleIcon, XIcon } from "./icons";
-import type { LearningMaterial, PitchScenario } from "../lib/modulesData";
+import { CheckCircleIcon, PauseIcon, PlayIcon, SparkleIcon, XIcon } from "./icons";
+import type { LearningMaterial, PitchScenario } from "../lib/types";
 
 function durationSeconds(meta: string) {
   const match = meta.match(/\d+/);
@@ -21,31 +21,36 @@ export function MaterialViewerModal({
   material,
   chapterHeadline,
   scenario,
+  completed,
+  onMarkComplete,
   onClose,
 }: {
   material: LearningMaterial;
   chapterHeadline: string;
   scenario: PitchScenario;
+  completed: boolean;
+  onMarkComplete: () => void;
   onClose: () => void;
 }) {
-  const isTimeBased = material.type !== "pdf";
-  const totalSeconds = isTimeBased ? durationSeconds(material.meta) : 0;
+  // Audio playback is still a mocked timer — only video is wired to a real
+  // stream so far.
+  const isFakeTimeBased = material.type === "audio";
+  const totalSeconds = isFakeTimeBased ? durationSeconds(material.meta) : 0;
 
   const [playing, setPlaying] = useState(true);
   const [elapsed, setElapsed] = useState(() => Math.round(totalSeconds * 0.35));
-  const [marked, setMarked] = useState(false);
   const [showScenario, setShowScenario] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!isTimeBased || !playing) return;
+    if (!isFakeTimeBased || !playing) return;
     timerRef.current = setInterval(() => {
       setElapsed((prev) => (prev >= totalSeconds ? totalSeconds : prev + 1));
     }, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [playing, isTimeBased, totalSeconds]);
+  }, [playing, isFakeTimeBased, totalSeconds]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -56,7 +61,7 @@ export function MaterialViewerModal({
   }, [onClose]);
 
   const typeMeta = MATERIAL_TYPE_META[material.type];
-  const progressPercent = isTimeBased && totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
+  const progressPercent = isFakeTimeBased && totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
 
   return (
     <div
@@ -93,15 +98,20 @@ export function MaterialViewerModal({
         </div>
 
         {material.type === "pdf" ? (
-          <div className="p-14 flex flex-col items-center justify-center gap-3 text-center bg-background">
-            <div className="w-16 h-16 rounded-xl bg-navy-soft text-navy flex items-center justify-center">
-              <FileIcon size={28} />
-            </div>
-            <div className="font-display font-bold text-[16px] text-foreground">{material.title}</div>
-            <div className="text-[13px] text-foreground-muted">
-              {material.meta} • {material.filename}
-            </div>
-          </div>
+          <iframe
+            key={material.id}
+            src={`/api/materials/${material.id}/pdf`}
+            title={material.title}
+            className="w-full h-[70vh] bg-background border-0"
+          />
+        ) : material.type === "video" ? (
+          <video
+            key={material.id}
+            controls
+            autoPlay
+            className="w-full max-h-[70vh] bg-black"
+            src={`/api/materials/${material.id}/video`}
+          />
         ) : (
           <div className="bg-navy px-8 py-12 flex flex-col items-center gap-4">
             <button
@@ -115,9 +125,7 @@ export function MaterialViewerModal({
 
             <div className="text-center">
               <div className="font-display font-bold text-[16px] text-white mb-1">{material.title}</div>
-              <div className="text-[13px] text-white/60">
-                {material.type === "video" ? "ভিডিও লেসন" : "অডিও লেসন"} • {material.meta}
-              </div>
+              <div className="text-[13px] text-white/60">অডিও লেসন • {material.meta}</div>
             </div>
 
             <div className="w-full flex items-center gap-3 mt-2">
@@ -142,13 +150,16 @@ export function MaterialViewerModal({
         <div className="flex items-center justify-between gap-3 p-5 border-t border-border flex-wrap">
           <button
             type="button"
-            onClick={() => setMarked((m) => !m)}
+            onClick={onMarkComplete}
+            disabled={completed}
             className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border-[1.5px] font-display font-semibold text-[13px] transition-colors ${
-              marked ? "bg-success border-success text-white" : "border-success/40 text-success"
+              completed
+                ? "bg-success border-success text-white cursor-default"
+                : "border-success/40 text-success"
             }`}
           >
             <CheckCircleIcon size={15} />
-            {marked ? "কমপ্লিট হয়েছে" : "কমপ্লিট হিসেবে মার্ক করুন"}
+            {completed ? "চ্যাপ্টার কমপ্লিট হয়েছে" : "চ্যাপ্টার কমপ্লিট হিসেবে মার্ক করুন"}
           </button>
 
           <button

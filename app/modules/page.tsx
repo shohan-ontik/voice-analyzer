@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ModuleCard } from "../components/ModuleCard";
 import { SearchIcon } from "../components/icons";
-import { trainingModules, type ModuleStatus } from "../lib/modulesData";
+import { getModuleStatus, type ModuleStatus } from "../lib/moduleProgress";
+import { useModules } from "../lib/useModules";
 
 type FilterKey = "all" | ModuleStatus;
 
@@ -15,11 +16,12 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 ];
 
 export default function ModulesPage() {
+  const { modules, error } = useModules();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const filteredModules = trainingModules.filter((m) => {
-    const matchesFilter = filter === "all" || m.status === filter;
+  const filteredModules = (modules ?? []).filter((m) => {
+    const matchesFilter = filter === "all" || getModuleStatus(m) === filter;
     const matchesQuery = query.trim() === "" || m.title.toLowerCase().includes(query.trim().toLowerCase());
     return matchesFilter && matchesQuery;
   });
@@ -68,7 +70,11 @@ export default function ModulesPage() {
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {filteredModules.length === 0 ? (
+        {error ? (
+          <div className="text-center text-[13.5px] text-red-600 py-16">{error}</div>
+        ) : !modules ? (
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">লোড হচ্ছে…</div>
+        ) : filteredModules.length === 0 ? (
           <div className="text-center text-[13.5px] text-foreground-muted py-16">
             কোনো মডিউল খুঁজে পাওয়া যায়নি।
           </div>

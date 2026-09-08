@@ -1,23 +1,37 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ChapterRow } from "../../components/ChapterRow";
 import { ModuleExamBanner } from "../../components/ModuleExamBanner";
 import { MODULE_STATUS_META } from "../../components/ModuleCard";
 import { ArrowLeftIcon, AwardIcon, BookIcon } from "../../components/icons";
-import { moduleExams } from "../../lib/examsData";
-import { trainingModules } from "../../lib/modulesData";
+import { getChapterProgress, getExamStatus, getModuleStatus } from "../../lib/moduleProgress";
+import { useModule } from "../../lib/useModules";
 
-export default async function ModuleDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const trainingModule = trainingModules.find((m) => m.id === id);
-  if (!trainingModule) notFound();
+export default function ModuleDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { trainingModule, error, loading } = useModule(id);
 
-  const meta = MODULE_STATUS_META[trainingModule.status];
-  const progressPercent =
-    trainingModule.totalChapters === 0
-      ? 0
-      : Math.round((trainingModule.completedChapters / trainingModule.totalChapters) * 100);
-  const exam = trainingModule.examId ? moduleExams.find((e) => e.id === trainingModule.examId) : undefined;
+  if (loading) {
+    return <div className="flex-1 flex items-center justify-center text-[13.5px] text-foreground-muted">লোড হচ্ছে…</div>;
+  }
+
+  if (error || !trainingModule) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">{error ?? "মডিউল খুঁজে পাওয়া যায়নি।"}</p>
+        <Link href="/modules" className="text-[13px] font-semibold text-navy">
+          সকল মডিউল ফিরে যান
+        </Link>
+      </div>
+    );
+  }
+
+  const meta = MODULE_STATUS_META[getModuleStatus(trainingModule)];
+  const { completed, total } = getChapterProgress(trainingModule);
+  const progressPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const examStatus = getExamStatus(trainingModule);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -35,7 +49,7 @@ export default async function ModuleDetailPage({ params }: { params: Promise<{ i
         <div className="rounded-2xl border border-border bg-background-elevated overflow-hidden">
           <div className="relative h-[200px] lg:h-[280px] bg-border">
             {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
-            <img src={trainingModule.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+            <img src={trainingModule.thumbnailUrl ?? undefined} alt="" className="w-full h-full object-cover" />
           </div>
 
           <div className="p-5 lg:p-8">
@@ -70,14 +84,12 @@ export default async function ModuleDetailPage({ params }: { params: Promise<{ i
               <div className="flex items-center gap-4 text-[12.5px] text-foreground-muted shrink-0">
                 <span className="flex items-center gap-1.5">
                   <BookIcon size={14} />
-                  {trainingModule.totalChapters}টি অধ্যায়
+                  {total}টি অধ্যায়
                 </span>
-                {exam && (
-                  <span className="flex items-center gap-1.5">
-                    <AwardIcon size={14} />
-                    ১টি চূড়ান্ত পরীক্ষা
-                  </span>
-                )}
+                <span className="flex items-center gap-1.5">
+                  <AwardIcon size={14} />
+                  ১টি চূড়ান্ত পরীক্ষা
+                </span>
               </div>
             </div>
           </div>
@@ -94,10 +106,10 @@ export default async function ModuleDetailPage({ params }: { params: Promise<{ i
 
         <div className="flex flex-col gap-4">
           {trainingModule.chapters.map((chapter) => (
-            <ChapterRow key={chapter.id} moduleId={trainingModule.id} chapter={chapter} />
+            <ChapterRow key={chapter.id} moduleId={trainingModule.slug} chapter={chapter} />
           ))}
 
-          {exam && <ModuleExamBanner exam={exam} />}
+          <ModuleExamBanner exam={trainingModule.exam} status={examStatus} />
         </div>
       </div>
     </div>

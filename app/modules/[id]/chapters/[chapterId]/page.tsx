@@ -1,26 +1,65 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import { MaterialsSection } from "../../../../components/MaterialsSection";
 import { RoleplayCtaBanner } from "../../../../components/RoleplayCtaBanner";
 import { ArrowLeftIcon, BookIcon, SparkleIcon } from "../../../../components/icons";
-import { chapterHeadline, trainingModules } from "../../../../lib/modulesData";
+import { authFetch } from "../../../../lib/clientFetch";
+import { useModule } from "../../../../lib/useModules";
 
-export default async function ChapterDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string; chapterId: string }>;
-}) {
-  const { id, chapterId } = await params;
-  const trainingModule = trainingModules.find((m) => m.id === id);
-  if (!trainingModule) notFound();
+// Chapter titles are stored as "চ্যাপ্টার ১: ..." — this strips that prefix
+// for the chapter detail hero, which shows the chapter number as its own
+// badge instead.
+function chapterHeadline(title: string) {
+  return title.replace(/^চ্যাপ্টার\s*[০-৯0-9]+\s*[:ঃ]\s*/, "");
+}
 
-  const chapterIndex = trainingModule.chapters.findIndex((c) => c.id === chapterId);
+export default function ChapterDetailPage() {
+  const { id, chapterId } = useParams<{ id: string; chapterId: string }>();
+  const { trainingModule, error, loading, refetch } = useModule(id);
+
+  if (loading) {
+    return <div className="flex-1 flex items-center justify-center text-[13.5px] text-foreground-muted">লোড হচ্ছে…</div>;
+  }
+
+  if (error || !trainingModule) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">{error ?? "মডিউল খুঁজে পাওয়া যায়নি।"}</p>
+        <Link href="/modules" className="text-[13px] font-semibold text-navy">
+          সকল মডিউল ফিরে যান
+        </Link>
+      </div>
+    );
+  }
+
+  const chapterIndex = trainingModule.chapters.findIndex((c) => c.slug === chapterId);
   const chapter = trainingModule.chapters[chapterIndex];
-  if (!chapter) notFound();
+
+  if (!chapter) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">অধ্যায় খুঁজে পাওয়া যায়নি।</p>
+        <Link href={`/modules/${trainingModule.slug}`} className="text-[13px] font-semibold text-navy">
+          মডিউলে ফিরে যান
+        </Link>
+      </div>
+    );
+  }
 
   const chapterNumber = chapterIndex + 1;
   const headline = chapterHeadline(chapter.title);
-  const completed = chapter.status === "completed";
+  const completed = chapter.completedAt !== null;
+
+  async function handleMarkComplete() {
+    if (completed) return;
+    const res = await authFetch(
+      `/api/modules/${trainingModule!.slug}/chapters/${chapter!.slug}/complete`,
+      { method: "POST" }
+    );
+    if (res.ok) refetch();
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -34,7 +73,7 @@ export default async function ChapterDetailPage({
         </Link>
         <span className="text-foreground-muted">/</span>
         <Link
-          href={`/modules/${trainingModule.id}`}
+          href={`/modules/${trainingModule.slug}`}
           className="font-semibold text-foreground-muted hover:text-foreground truncate max-w-[260px]"
         >
           {trainingModule.title}
@@ -88,6 +127,7 @@ export default async function ChapterDetailPage({
           completed={completed}
           chapterHeadline={headline}
           scenario={chapter.scenario}
+          onMarkComplete={handleMarkComplete}
         />
       </div>
 

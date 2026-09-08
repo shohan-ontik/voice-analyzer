@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon } from "./icons";
-import type { ExamStatus, ModuleExam } from "../lib/examsData";
+import type { ExamStatus } from "../lib/moduleProgress";
+import type { ModuleExam } from "../lib/types";
 
 const STATUS_META: Record<ExamStatus, { label: string; badgeClass: string; Icon: typeof CheckCircleIcon }> = {
   passed: { label: "পাসড", badgeClass: "bg-success text-white", Icon: CheckCircleIcon },
@@ -8,9 +8,9 @@ const STATUS_META: Record<ExamStatus, { label: string; badgeClass: string; Icon:
   locked: { label: "লকড", badgeClass: "bg-border text-foreground-muted", Icon: LockIcon },
 };
 
-export function ExamCard({ exam }: { exam: ModuleExam }) {
-  const meta = STATUS_META[exam.status];
-  const badgeLabel = exam.status === "passed" ? `${meta.label} (${exam.score}%)` : meta.label;
+export function ExamCard({ exam, status }: { exam: ModuleExam; status: ExamStatus }) {
+  const meta = STATUS_META[status];
+  const badgeLabel = status === "passed" && exam.bestScore !== null ? `${meta.label} (${exam.bestScore}%)` : meta.label;
 
   return (
     <div className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-3">
@@ -21,10 +21,12 @@ export function ExamCard({ exam }: { exam: ModuleExam }) {
           <meta.Icon size={12} />
           {badgeLabel}
         </span>
-        <span className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
-          <CalendarIcon size={13} />
-          শেষ তারিখ: {exam.dueDate}
-        </span>
+        {exam.dueDate && (
+          <span className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
+            <CalendarIcon size={13} />
+            শেষ তারিখ: {exam.dueDate}
+          </span>
+        )}
       </div>
 
       <div>
@@ -38,16 +40,7 @@ export function ExamCard({ exam }: { exam: ModuleExam }) {
           পাস মার্ক: <span className="font-semibold text-foreground">{exam.passMark}%</span>
         </span>
 
-        {exam.status === "passed" && exam.report && (
-          <Link
-            href={`/exams/${exam.id}/report`}
-            className="px-4 py-2.5 rounded-lg bg-success text-white font-display font-semibold text-[13px]"
-          >
-            পাসড রিপোর্ট দেখুন
-          </Link>
-        )}
-
-        {exam.status === "locked" && (
+        {status === "locked" && (
           <button
             type="button"
             disabled
@@ -58,7 +51,7 @@ export function ExamCard({ exam }: { exam: ModuleExam }) {
           </button>
         )}
 
-        {exam.status === "ready" && (
+        {status === "ready" && (
           <button
             type="button"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px]"
