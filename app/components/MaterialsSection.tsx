@@ -7,16 +7,14 @@ import type { LearningMaterial, PitchScenario } from "../lib/types";
 
 export function MaterialsSection({
   materials,
-  completed,
   chapterHeadline,
   scenario,
   onMarkComplete,
 }: {
   materials: LearningMaterial[];
-  completed: boolean;
   chapterHeadline: string;
   scenario: PitchScenario;
-  onMarkComplete: () => void;
+  onMarkComplete: (materialId: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openMaterial = materials.find((m) => m.id === openId) ?? null;
@@ -28,7 +26,7 @@ export function MaterialsSection({
           <MaterialRow
             key={material.id}
             material={material}
-            completed={completed}
+            completed={material.completedAt !== null}
             onOpen={() => setOpenId(material.id)}
           />
         ))}
@@ -39,8 +37,8 @@ export function MaterialsSection({
           material={openMaterial}
           chapterHeadline={chapterHeadline}
           scenario={scenario}
-          completed={completed}
-          onMarkComplete={onMarkComplete}
+          completed={openMaterial.completedAt !== null}
+          onMarkComplete={() => onMarkComplete(openMaterial.id)}
           onClose={() => setOpenId(null)}
         />
       )}

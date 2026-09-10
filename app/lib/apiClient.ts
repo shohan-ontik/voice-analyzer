@@ -126,9 +126,9 @@ export function getModule(token: string, slug: string) {
   return request<TrainingModule>(`/modules/${encodeURIComponent(slug)}`, { token });
 }
 
-export function markChapterComplete(token: string, moduleSlug: string, chapterSlug: string) {
-  return request<{ completed: true; completedAt: string }>(
-    `/modules/${encodeURIComponent(moduleSlug)}/chapters/${encodeURIComponent(chapterSlug)}/complete`,
+export function markMaterialComplete(token: string, moduleSlug: string, chapterSlug: string, materialId: string) {
+  return request<{ completed: true; completedAt: string; chapterCompleted: boolean }>(
+    `/modules/${encodeURIComponent(moduleSlug)}/chapters/${encodeURIComponent(chapterSlug)}/materials/${encodeURIComponent(materialId)}/complete`,
     { method: "POST", token }
   );
 }

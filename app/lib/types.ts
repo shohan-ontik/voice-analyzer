@@ -56,6 +56,8 @@ export type LearningMaterial = {
   // e.g. "10 mins" for video/audio, "6 pages" for a pdf.
   meta: string;
   filename: string;
+  // `completedAt` is the only completion signal — null means not completed.
+  completedAt: string | null;
 };
 
 // Mirrors voice-analyzer-api's ModuleChapter#scenario (JSONB) — the AI

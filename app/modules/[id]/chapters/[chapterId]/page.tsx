@@ -50,12 +50,10 @@ export default function ChapterDetailPage() {
 
   const chapterNumber = chapterIndex + 1;
   const headline = chapterHeadline(chapter.title);
-  const completed = chapter.completedAt !== null;
 
-  async function handleMarkComplete() {
-    if (completed) return;
+  async function handleMarkComplete(materialId: string) {
     const res = await authFetch(
-      `/api/modules/${trainingModule!.slug}/chapters/${chapter!.slug}/complete`,
+      `/api/modules/${trainingModule!.slug}/chapters/${chapter!.slug}/materials/${materialId}/complete`,
       { method: "POST" }
     );
     if (res.ok) refetch();
@@ -124,7 +122,6 @@ export default function ChapterDetailPage() {
 
         <MaterialsSection
           materials={chapter.materials}
-          completed={completed}
           chapterHeadline={headline}
           scenario={chapter.scenario}
           onMarkComplete={handleMarkComplete}

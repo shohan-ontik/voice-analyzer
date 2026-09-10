@@ -155,11 +155,11 @@ export function MaterialViewerModal({
             className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border-[1.5px] font-display font-semibold text-[13px] transition-colors ${
               completed
                 ? "bg-success border-success text-white cursor-default"
-                : "border-success/40 text-success"
+                : "border-success/40 text-success cursor-pointer"
             }`}
           >
             <CheckCircleIcon size={15} />
-            {completed ? "চ্যাপ্টার কমপ্লিট হয়েছে" : "চ্যাপ্টার কমপ্লিট হিসেবে মার্ক করুন"}
+            {completed ? "কমপ্লিট হয়েছে" : "কমপ্লিট হিসেবে মার্ক করুন"}
           </button>
 
           <button
