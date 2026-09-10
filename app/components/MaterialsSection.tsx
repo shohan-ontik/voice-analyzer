@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { MaterialRow } from "./MaterialRow";
 import { MaterialViewerModal } from "./MaterialViewerModal";
-import type { LearningMaterial, PitchScenario } from "../lib/types";
+import type { LearningMaterial } from "../lib/types";
 
 export function MaterialsSection({
   materials,
   chapterHeadline,
-  scenario,
+  roleplayHref,
   onMarkComplete,
 }: {
   materials: LearningMaterial[];
   chapterHeadline: string;
-  scenario: PitchScenario;
+  roleplayHref: string;
   onMarkComplete: (materialId: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function MaterialsSection({
         <MaterialViewerModal
           material={openMaterial}
           chapterHeadline={chapterHeadline}
-          scenario={scenario}
+          roleplayHref={roleplayHref}
           completed={openMaterial.completedAt !== null}
           onMarkComplete={() => onMarkComplete(openMaterial.id)}
           onClose={() => setOpenId(null)}

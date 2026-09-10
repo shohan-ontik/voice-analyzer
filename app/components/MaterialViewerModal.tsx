@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { MATERIAL_TYPE_META } from "./MaterialRow";
-import { ScenarioBriefingModal } from "./ScenarioBriefingModal";
 import { CheckCircleIcon, PauseIcon, PlayIcon, SparkleIcon, XIcon } from "./icons";
-import type { LearningMaterial, PitchScenario } from "../lib/types";
+import type { LearningMaterial } from "../lib/types";
 
 function durationSeconds(meta: string) {
   const match = meta.match(/\d+/);
@@ -20,14 +20,14 @@ function formatTime(totalSeconds: number) {
 export function MaterialViewerModal({
   material,
   chapterHeadline,
-  scenario,
+  roleplayHref,
   completed,
   onMarkComplete,
   onClose,
 }: {
   material: LearningMaterial;
   chapterHeadline: string;
-  scenario: PitchScenario;
+  roleplayHref: string;
   completed: boolean;
   onMarkComplete: () => void;
   onClose: () => void;
@@ -39,7 +39,6 @@ export function MaterialViewerModal({
 
   const [playing, setPlaying] = useState(true);
   const [elapsed, setElapsed] = useState(() => Math.round(totalSeconds * 0.35));
-  const [showScenario, setShowScenario] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -162,24 +161,15 @@ export function MaterialViewerModal({
             {completed ? "কমপ্লিট হয়েছে" : "কমপ্লিট হিসেবে মার্ক করুন"}
           </button>
 
-          <button
-            type="button"
-            onClick={() => setShowScenario(true)}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px]"
+          <Link
+            href={roleplayHref}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px] cursor-pointer"
           >
             <SparkleIcon size={14} />
             পিচ প্র্যাকটিস স্টার্ট করুন
-          </button>
+          </Link>
         </div>
       </div>
-
-      {showScenario && (
-        <ScenarioBriefingModal
-          topicTitle={chapterHeadline}
-          scenario={scenario}
-          onClose={() => setShowScenario(false)}
-        />
-      )}
     </div>
   );
 }

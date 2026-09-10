@@ -55,23 +55,33 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setTopicsLoading(true);
 
     let cancelled = false;
+    let settled = false;
     authFetch("/api/topics")
       .then(async (res) => {
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error?.message ?? "Failed to load topics.");
         if (cancelled) return;
+        settled = true;
         const items = body.items as Topic[];
         setTopics(items);
         setSelectedTopicId((prev) => prev ?? items[0]?.id ?? null);
       })
       .catch((err) => {
-        if (!cancelled) setTopicsError(err instanceof Error ? err.message : "Failed to load topics.");
+        if (cancelled) return;
+        settled = true;
+        setTopicsError(err instanceof Error ? err.message : "Failed to load topics.");
       })
       .finally(() => {
         if (!cancelled) setTopicsLoading(false);
       });
     return () => {
       cancelled = true;
+      // React's dev-only Strict Mode double-invokes effects on first mount,
+      // tearing this one down before the request settles — un-flag so the
+      // second invocation actually retries instead of leaving topics empty
+      // forever. Once a request has settled, leave the flag set so later
+      // pathname changes don't refetch pointlessly.
+      if (!settled) fetchedTopicsRef.current = false;
     };
   }, [pathname]);
 

@@ -1,20 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BackHeader } from "../components/BackHeader";
-import { useAppState, type RecordingMode } from "../providers";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDownIcon, MicIcon, XIcon } from "../components/icons";
+import { useAppState } from "../providers";
 
 type Status = "idle" | "recording" | "stopped";
 
 const BAR_COUNT = 28;
 
-function pickMimeType(mode: RecordingMode) {
-  const candidates =
-    mode === "video"
-      ? ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"]
-      : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+function pickAudioMimeType() {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
   if (typeof MediaRecorder === "undefined") return undefined;
   return candidates.find((c) => MediaRecorder.isTypeSupported(c));
 }
@@ -29,15 +26,14 @@ export default function RecordPage() {
   const router = useRouter();
   const { selectedTopic, setRecording } = useAppState();
 
-  const [mode, setMode] = useState<RecordingMode>("video");
   const [status, setStatus] = useState<Status>("idle");
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [levels, setLevels] = useState<number[]>(() => Array(BAR_COUNT).fill(0.08));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [streamReady, setStreamReady] = useState(false);
+  const [referenceExpanded, setReferenceExpanded] = useState(true);
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -46,16 +42,16 @@ export default function RecordPage() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const blobRef = useRef<Blob | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
-  // Acquire (or re-acquire) the camera/mic stream whenever the mode changes.
+  // Acquire the mic stream once on mount and keep it live for the whole
+  // session, so the level bars can animate before the user taps record.
   useEffect(() => {
     let cancelled = false;
 
     async function go() {
       try {
-        const constraints: MediaStreamConstraints =
-          mode === "video" ? { video: { facingMode: "user" }, audio: true } : { audio: true };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
@@ -63,10 +59,6 @@ export default function RecordPage() {
         streamRef.current = stream;
         setError(null);
         setStreamReady(true);
-
-        if (videoRef.current && mode === "video") {
-          videoRef.current.srcObject = stream;
-        }
 
         const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         const audioCtx = new AudioCtx();
@@ -93,7 +85,7 @@ export default function RecordPage() {
         };
         rafRef.current = requestAnimationFrame(tick);
       } catch {
-        if (!cancelled) setError("Camera/microphone access was denied or unavailable. Check your browser permissions.");
+        if (!cancelled) setError("Microphone access was denied or unavailable. Check your browser permissions.");
       }
     }
 
@@ -106,34 +98,26 @@ export default function RecordPage() {
       audioCtxRef.current?.close().catch(() => {});
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
-    };
-  }, [mode]);
-
-  useEffect(() => {
-    return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function startRecording() {
     if (!streamRef.current) return;
     chunksRef.current = [];
-    const mimeType = pickMimeType(mode);
+    const mimeType = pickAudioMimeType();
     const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: mimeType ?? (mode === "video" ? "video/webm" : "audio/webm") });
+      const blob = new Blob(chunksRef.current, { type: mimeType ?? "audio/webm" });
       blobRef.current = blob;
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
       const url = URL.createObjectURL(blob);
+      previewUrlRef.current = url;
       setPreviewUrl(url);
-      if (mode === "video" && videoRef.current) {
-        videoRef.current.srcObject = null;
-        videoRef.current.src = url;
-      }
     };
     recorderRef.current = recorder;
     recorder.start();
@@ -149,42 +133,34 @@ export default function RecordPage() {
   }
 
   function retake() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
     setPreviewUrl(null);
     blobRef.current = null;
     setSeconds(0);
     setStatus("idle");
-    if (videoRef.current && mode === "video" && streamRef.current) {
-      videoRef.current.src = "";
-      videoRef.current.srcObject = streamRef.current;
-    }
   }
 
   function analyze() {
     if (!blobRef.current) return;
-    setRecording(blobRef.current, mode, seconds);
+    setRecording(blobRef.current, "audio", seconds);
     router.push("/analyzing");
-  }
-
-  function changeMode(next: RecordingMode) {
-    if (status !== "idle" || next === mode) return;
-    setMode(next);
   }
 
   const helper = error
     ? error
     : status === "recording"
-    ? "Recording — read at a natural, confident pace."
-    : status === "stopped"
-    ? "Nice work! Retake if needed, or send it for analysis."
-    : "Tap the button to start recording.";
+      ? "Recording — read at a natural, confident pace."
+      : status === "stopped"
+        ? "Nice work! Retake if needed, or send it for analysis."
+        : "Tap the button to start recording.";
 
   if (!selectedTopic) {
     return (
       <div className="flex-1 flex flex-col bg-background">
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-6">
           <div className="text-foreground-muted text-sm">No topic selected.</div>
-          <Link href="/" className="text-accent font-display font-semibold text-sm">
+          <Link href="/" className="text-accent font-display font-semibold text-sm cursor-pointer">
             Choose a topic to practice
           </Link>
         </div>
@@ -193,144 +169,150 @@ export default function RecordPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
-      <BackHeader
-        title={selectedTopic.name}
-        badge="Use your own words"
-        right={
-          <div className="flex items-center gap-3.5">
-            {status === "recording" && (
-              <div className="flex items-center gap-2">
-                <div className="w-[9px] h-[9px] rounded-full bg-accent" style={{ animation: "rec-pulse 1.1s ease-in-out infinite" }} />
-                <div className="text-xs font-bold tracking-wide text-accent">REC</div>
-              </div>
-            )}
-            <div className="font-display font-semibold text-[22px] tabular-nums min-w-16 text-right text-foreground">
-              {formatTime(seconds)}
-            </div>
-          </div>
-        }
-      />
+    <div className="flex-1 flex items-center justify-center bg-background p-4 lg:p-10">
+      <div
+        className="relative w-full max-w-[420px] min-h-[640px] rounded-[28px] overflow-hidden flex flex-col shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)]"
+        style={{ background: "linear-gradient(180deg, var(--navy) 0%, var(--navy-border) 100%)" }}
+      >
+        <div className="flex items-center justify-between p-4">
+          <Link
+            href="/"
+            aria-label="Close"
+            className="w-9 h-9 rounded-full bg-navy-ink/10 text-navy-ink flex items-center justify-center cursor-pointer"
+          >
+            <XIcon size={16} />
+          </Link>
 
-      <div className="flex-1 grid grid-cols-[1.3fr_1fr] gap-8 p-10 max-w-[1440px] w-full mx-auto">
-        {/* Passage card */}
-        <div className="bg-background-elevated border border-border rounded-[20px] p-10 flex flex-col">
-          <div className="text-xs font-bold uppercase tracking-wide text-foreground-muted mb-5">Key facts to cover</div>
-          <div className="font-bangla text-[29px] leading-[1.85] text-foreground flex-1">{selectedTopic.passage}</div>
-          <div className="mt-6 pt-5 border-t border-border flex items-center gap-2.5 text-foreground-muted text-[13px]">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            This isn&apos;t a script — pitch it in your own words. You&apos;ll be marked on accuracy, not on matching this wording.
-          </div>
+          {(status === "recording" || status === "stopped") && (
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-ink/10">
+              {status === "recording" && (
+                <div className="w-2 h-2 rounded-full bg-accent" style={{ animation: "rec-pulse 1.1s ease-in-out infinite" }} />
+              )}
+              <span className="font-display font-semibold text-[13px] text-navy-ink tabular-nums">{formatTime(seconds)}</span>
+            </div>
+          )}
         </div>
 
-        {/* Recording panel */}
-        <div className="flex flex-col gap-5">
-          <div className="inline-flex p-1 rounded-xl bg-background-elevated border border-border self-start">
-            <button
-              type="button"
-              onClick={() => changeMode("video")}
-              className={`px-[18px] py-[9px] rounded-[9px] text-[13px] font-semibold ${
-                mode === "video" ? "bg-accent text-accent-ink" : "text-foreground-muted"
-              }`}
-            >
-              Video
-            </button>
-            <button
-              type="button"
-              onClick={() => changeMode("audio")}
-              className={`px-[18px] py-[9px] rounded-[9px] text-[13px] font-semibold ${
-                mode === "audio" ? "bg-accent text-accent-ink" : "text-foreground-muted"
-              }`}
-            >
-              Audio
-            </button>
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+          {error ? (
+            <p className="text-[13.5px] text-navy-ink/85 leading-relaxed">{error}</p>
+          ) : (
+            <>
+              <div className="w-24 h-24 rounded-full bg-navy-ink/10 border-2 border-navy-ink/20 flex items-center justify-center text-navy-ink">
+                <MicIcon size={32} />
+              </div>
+              <div className="font-display font-bold text-[18px] text-navy-ink">{selectedTopic.name}</div>
 
-          <div
-            className="flex-1 rounded-[20px] bg-background-elevated border flex items-center justify-center relative overflow-hidden min-h-[360px]"
-            style={{
-              borderColor: status === "recording" ? "var(--accent)" : "var(--border)",
-              animation: status === "recording" ? "rec-ring 1.6s ease-out infinite" : undefined,
-            }}
-          >
-            {error ? (
-              <div className="text-center text-foreground-muted text-sm px-8">{error}</div>
-            ) : mode === "video" ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted={status !== "stopped"}
-                controls={status === "stopped"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex items-end gap-[5px] h-[120px]">
+              <div className="flex items-end gap-[3px] h-16 mt-2">
                 {levels.map((v, i) => (
                   <div
                     key={i}
-                    className="w-1.5 rounded-[3px] transition-[height] duration-150"
+                    className="w-1 rounded-[2px] transition-[height] duration-150"
                     style={{
                       height: `${Math.round(v * 100)}%`,
-                      background: status === "recording" ? "var(--accent)" : "var(--teal-soft)",
+                      background:
+                        status === "recording" ? "var(--accent)" : "color-mix(in oklch, var(--navy-ink) 35%, transparent)",
                     }}
                   />
                 ))}
               </div>
+
+              <div className="text-[12.5px] text-navy-ink/60 mt-1">{helper}</div>
+            </>
+          )}
+        </div>
+
+        {!error && (
+          <div className="flex flex-col items-center gap-4 pb-8 px-6">
+            {status === "idle" && (
+              <button
+                type="button"
+                disabled={!streamReady}
+                onClick={startRecording}
+                aria-label="Start recording"
+                className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-40"
+                style={{ background: "var(--accent)" }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--accent-ink)">
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+              </button>
+            )}
+
+            {status === "recording" && (
+              <button
+                type="button"
+                onClick={stopRecording}
+                aria-label="Stop recording"
+                className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ background: "var(--accent)" }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent-ink)">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              </button>
+            )}
+
+            {status === "stopped" && (
+              <div className="w-full flex flex-col items-center gap-4">
+                {previewUrl && <audio controls src={previewUrl} className="w-full max-w-[280px]" />}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={retake}
+                    className="px-4 py-2.5 rounded-lg border-[1.5px] border-navy-ink/30 text-navy-ink font-display font-semibold text-[13px] cursor-pointer"
+                  >
+                    Retake
+                  </button>
+                  <button
+                    type="button"
+                    onClick={analyze}
+                    className="px-5 py-2.5 rounded-lg bg-white text-navy font-display font-semibold text-[13px] cursor-pointer"
+                  >
+                    Analyze Pitch
+                  </button>
+                </div>
+              </div>
             )}
           </div>
+        )}
 
-          {status !== "stopped" ? (
-            <div className="flex items-center justify-center gap-4 py-2">
-              <button
-                type="button"
-                disabled={!!error || !streamReady}
-                onClick={status === "recording" ? stopRecording : startRecording}
-                className="w-16 h-16 rounded-full flex items-center justify-center disabled:opacity-40"
-                style={{ background: status === "recording" ? "var(--foreground)" : "var(--accent)" }}
-              >
-                {status === "recording" ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent-ink)">
-                    <rect x="6" y="6" width="12" height="12" rx="2" />
-                  </svg>
-                ) : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--accent-ink)">
-                    <circle cx="12" cy="12" r="9" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-3.5 py-2">
-              <button
-                type="button"
-                onClick={retake}
-                className="flex items-center gap-2 px-[22px] py-3.5 rounded-xl border-[1.5px] border-border text-foreground font-display font-semibold text-sm"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="1 4 1 10 7 10" />
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+        <div className="bg-background-elevated rounded-t-[24px] px-5 pt-4 pb-5 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setReferenceExpanded((e) => !e)}
+            className="flex items-center justify-between cursor-pointer"
+          >
+            <span className="font-display font-bold text-[13.5px] text-foreground">Key facts to cover</span>
+            <ChevronDownIcon
+              size={16}
+              className={`text-foreground-muted transition-transform ${referenceExpanded ? "" : "rotate-180"}`}
+            />
+          </button>
+          {referenceExpanded && (
+            <>
+              <p className="font-bangla text-[15px] leading-relaxed text-foreground">{selectedTopic.passage}</p>
+              <div className="pt-2 mt-1 border-t border-border flex items-start gap-2 text-foreground-muted text-[11.5px] leading-relaxed">
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0 mt-0.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
-                Retake
-              </button>
-              <button
-                type="button"
-                onClick={analyze}
-                className="flex items-center gap-2 px-[26px] py-3.5 rounded-xl bg-accent text-accent-ink font-display font-semibold text-sm"
-              >
-                Analyze Pitch
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
-            </div>
+                This isn&apos;t a script — pitch it in your own words. You&apos;ll be marked on accuracy, not on matching
+                this wording.
+              </div>
+            </>
           )}
-          <div className="text-center text-[13px] text-foreground-muted">{helper}</div>
         </div>
       </div>
     </div>

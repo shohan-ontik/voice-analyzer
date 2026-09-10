@@ -5,15 +5,9 @@ import { useParams } from "next/navigation";
 import { MaterialsSection } from "../../../../components/MaterialsSection";
 import { RoleplayCtaBanner } from "../../../../components/RoleplayCtaBanner";
 import { ArrowLeftIcon, BookIcon, SparkleIcon } from "../../../../components/icons";
+import { chapterHeadline } from "../../../../lib/chapterHeadline";
 import { authFetch } from "../../../../lib/clientFetch";
 import { useModule } from "../../../../lib/useModules";
-
-// Chapter titles are stored as "চ্যাপ্টার ১: ..." — this strips that prefix
-// for the chapter detail hero, which shows the chapter number as its own
-// badge instead.
-function chapterHeadline(title: string) {
-  return title.replace(/^চ্যাপ্টার\s*[০-৯0-9]+\s*[:ঃ]\s*/, "");
-}
 
 export default function ChapterDetailPage() {
   const { id, chapterId } = useParams<{ id: string; chapterId: string }>();
@@ -50,6 +44,7 @@ export default function ChapterDetailPage() {
 
   const chapterNumber = chapterIndex + 1;
   const headline = chapterHeadline(chapter.title);
+  const roleplayHref = `/modules/${trainingModule.slug}/chapters/${chapter.slug}/roleplay`;
 
   async function handleMarkComplete(materialId: string) {
     const res = await authFetch(
@@ -123,13 +118,13 @@ export default function ChapterDetailPage() {
         <MaterialsSection
           materials={chapter.materials}
           chapterHeadline={headline}
-          scenario={chapter.scenario}
+          roleplayHref={roleplayHref}
           onMarkComplete={handleMarkComplete}
         />
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        <RoleplayCtaBanner topicTitle={headline} scenario={chapter.scenario} />
+        <RoleplayCtaBanner topicTitle={headline} roleplayHref={roleplayHref} />
       </div>
     </div>
   );
