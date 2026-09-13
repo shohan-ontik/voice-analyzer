@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AwardIcon,
@@ -12,30 +14,94 @@ import {
   SparkleIcon,
   ZapIcon,
 } from "./components/icons";
+import { ModuleExamBanner } from "./components/ModuleExamBanner";
+import { dashboardUser, upcomingExam } from "./lib/dashboardData";
+import { authFetch } from "./lib/clientFetch";
+import { chapterHeadline } from "./lib/chapterHeadline";
 import {
-  continueLearningModule,
-  dashboardStats,
-  dashboardUser,
-  upcomingExam,
-  type DashboardStat,
-} from "./lib/dashboardData";
+  getChapterProgress,
+  getCurrentChapter,
+  getExamStatus,
+  getModuleStatus,
+  pickContinueModule,
+} from "./lib/moduleProgress";
+import type { ModuleChapter, StatsSummary } from "./lib/types";
+import { useModules } from "./lib/useModules";
 
-const STAT_ICONS: Record<DashboardStat["icon"], typeof BookIcon> = {
+const CONTINUE_STATUS_BADGE: Record<"in_progress" | "not_started", string> = {
+  in_progress: "চলমান (IN PROGRESS)",
+  not_started: "শুরু করুন (START NOW)",
+};
+
+function chapterMaterialsMeta(chapter: ModuleChapter) {
+  const videoCount = chapter.materials.filter((m) => m.type === "video").length;
+  const guideCount = chapter.materials.filter((m) => m.type === "pdf").length;
+  const audioCount = chapter.materials.filter((m) => m.type === "audio").length;
+
+  return [
+    videoCount ? `${videoCount}টি ভিডিও` : null,
+    guideCount ? `${guideCount}টি পিডিএফ গাইড` : null,
+    audioCount ? `${audioCount}টি অডিও` : null,
+  ]
+    .filter(Boolean)
+    .join("  •  ");
+}
+
+type StatTone = "teal" | "navy" | "success" | "accent";
+
+const STAT_ICONS: Record<"book" | "zap" | "award" | "chart", typeof BookIcon> = {
   book: BookIcon,
   zap: ZapIcon,
   award: AwardIcon,
   chart: BarChartIcon,
 };
 
-const STAT_TONE_CLASSES: Record<DashboardStat["tone"], { badge: string; text: string }> = {
+const STAT_TONE_CLASSES: Record<StatTone, { badge: string; text: string }> = {
   teal: { badge: "bg-teal-soft", text: "text-teal" },
   navy: { badge: "bg-navy-soft", text: "text-navy" },
   success: { badge: "bg-success-soft", text: "text-success" },
   accent: { badge: "bg-accent-soft", text: "text-accent" },
 };
 
+const STAT_CARDS: {
+  key: keyof StatsSummary;
+  label: string;
+  suffix?: string;
+  icon: "book" | "zap" | "award" | "chart";
+  tone: StatTone;
+}[] = [
+  { key: "completedModules", label: "কমপ্লিট মডিউল", icon: "book", tone: "teal" },
+  { key: "totalSessions", label: "প্র্যাকটিস পিচ", icon: "zap", tone: "navy" },
+  { key: "passedExams", label: "পাস করা এক্সাম", icon: "award", tone: "success" },
+  { key: "averageScore", label: "আভারেজ স্কোর", suffix: "%", icon: "chart", tone: "accent" },
+];
+
 export default function Home() {
   const router = useRouter();
+  const [stats, setStats] = useState<StatsSummary | null>(null);
+  const { modules, error: modulesError } = useModules();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    authFetch("/api/sessions/stats")
+      .then(async (res) => {
+        const body = await res.json();
+        if (res.ok && !cancelled) setStats(body as StatsSummary);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const continueModule = modules ? pickContinueModule(modules) : null;
+  const currentChapter = continueModule ? getCurrentChapter(continueModule) : null;
+  const continueProgress = continueModule ? getChapterProgress(continueModule) : null;
+  const continueProgressPercent = continueProgress && continueProgress.total > 0
+    ? Math.round((continueProgress.completed / continueProgress.total) * 100)
+    : 0;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -69,9 +135,10 @@ export default function Home() {
       </div>
 
       <div className="px-4 pt-6 pb-6 lg:px-10 lg:pt-0 lg:pb-8 grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-        {dashboardStats.map((stat) => {
+        {STAT_CARDS.map((stat) => {
           const Icon = STAT_ICONS[stat.icon];
           const tone = STAT_TONE_CLASSES[stat.tone];
+          const value = stats === null ? "…" : ((stats[stat.key] as number | null) ?? 0);
           return (
             <div
               key={stat.key}
@@ -83,8 +150,8 @@ export default function Home() {
 
               <div>
                 <div className="font-display font-bold text-[30px] leading-none text-foreground">
-                  {stat.value}
-                  {stat.suffix && (
+                  {value}
+                  {stat.suffix && value !== "…" && (
                     <span className="text-[18px] font-semibold text-foreground-muted">{stat.suffix}</span>
                   )}
                 </div>
@@ -116,79 +183,94 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="flex gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
-            <img
-              src={continueLearningModule.thumbnailUrl}
-              alt=""
-              className="w-[110px] h-[110px] rounded-xl object-cover shrink-0 bg-border"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-1 rounded-full bg-navy-soft text-navy text-[11px] font-bold">
-                  {continueLearningModule.statusBadge}
-                </span>
-                <span className="text-[12px] text-foreground-muted">
-                  • {continueLearningModule.moduleLabel}
-                </span>
-              </div>
-              <div className="font-display font-bold text-[16px] text-foreground mb-1.5">
-                {continueLearningModule.title}
-              </div>
-              <p className="text-[13px] text-foreground-muted leading-relaxed mb-3">
-                {continueLearningModule.description}
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-navy"
-                    style={{
-                      width: `${continueLearningModule.progressPercent}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-foreground-muted shrink-0">
-                  {continueLearningModule.progressLabel} ·{" "}
-                  {continueLearningModule.progressPercent}%
-                </span>
-              </div>
+          {modulesError ? (
+            <div className="text-[13.5px] text-red-600 py-6 text-center">{modulesError}</div>
+          ) : !modules ? (
+            <div className="text-[13.5px] text-foreground-muted py-6 text-center">লোড হচ্ছে…</div>
+          ) : !continueModule ? (
+            <div className="text-[13.5px] text-foreground-muted py-6 text-center">
+              অভিনন্দন! আপনি সব মডিউল সম্পন্ন করেছেন। নতুন মডিউলের জন্য অপেক্ষা করুন।
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
+                <img
+                  src={continueModule.thumbnailUrl ?? undefined}
+                  alt=""
+                  className="w-[110px] h-[110px] rounded-xl object-cover shrink-0 bg-border"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2.5 py-1 rounded-full bg-navy-soft text-navy text-[11px] font-bold">
+                      {CONTINUE_STATUS_BADGE[getModuleStatus(continueModule) as "in_progress" | "not_started"]}
+                    </span>
+                    <span className="text-[12px] text-foreground-muted">• মডিউল {continueModule.order + 1}</span>
+                  </div>
+                  <div className="font-display font-bold text-[16px] text-foreground mb-1.5">
+                    {continueModule.title}
+                  </div>
+                  <p className="text-[13px] text-foreground-muted leading-relaxed mb-3 line-clamp-2">
+                    {continueModule.description}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-navy"
+                        style={{ width: `${continueProgressPercent}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-foreground-muted shrink-0">
+                      অগ্রগতি (অধ্যায় {continueProgress?.completed} / {continueProgress?.total}) ·{" "}
+                      {continueProgressPercent}%
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          <div className="rounded-xl bg-background border border-border p-4 flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-navy text-navy-ink flex items-center justify-center font-display font-bold text-[14px] shrink-0">
-                {continueLearningModule.currentChapter.number}
-              </div>
-              <div className="min-w-0">
-                <div className="text-[11px] font-bold uppercase tracking-wide text-foreground-muted mb-0.5">
-                  বর্তমান অধ্যায়
+              {currentChapter ? (
+                <div className="rounded-xl bg-background border border-border p-4 flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-navy text-navy-ink flex items-center justify-center font-display font-bold text-[14px] shrink-0">
+                      {currentChapter.order + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold uppercase tracking-wide text-foreground-muted mb-0.5">
+                        বর্তমান অধ্যায়
+                      </div>
+                      <div className="font-semibold text-[14px] text-foreground truncate">
+                        {chapterHeadline(currentChapter.title)}
+                      </div>
+                      <div className="text-[12px] text-foreground-muted">
+                        {chapterMaterialsMeta(currentChapter)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <Link
+                      href={`/modules/${continueModule.slug}/chapters/${currentChapter.slug}`}
+                      className="cursor-pointer px-4 py-2.5 rounded-lg border-[1.5px] border-border text-foreground font-display font-semibold text-[13px]"
+                    >
+                      কনটেন্ট দেখুন
+                    </Link>
+                    <Link
+                      href={`/modules/${continueModule.slug}/chapters/${currentChapter.slug}/roleplay`}
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px]"
+                    >
+                      <SparkleIcon size={13} />
+                      পিচ প্র্যাকটিস
+                    </Link>
+                  </div>
                 </div>
-                <div className="font-semibold text-[14px] text-foreground truncate">
-                  {continueLearningModule.currentChapter.title}
-                </div>
-                <div className="text-[12px] text-foreground-muted">
-                  {continueLearningModule.currentChapter.meta}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                className="px-4 py-2.5 rounded-lg border-[1.5px] border-border text-foreground font-display font-semibold text-[13px]"
-              >
-                কনটেন্ট দেখুন
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/record")}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px]"
-              >
-                <SparkleIcon size={13} />
-                পিচ প্র্যাকটিস
-              </button>
-            </div>
-          </div>
+              ) : (
+                <ModuleExamBanner
+                  exam={continueModule.exam}
+                  status={getExamStatus(continueModule)}
+                  moduleSlug={continueModule.slug}
+                />
+              )}
+            </>
+          )}
         </div>
 
         <div className="rounded-2xl border border-border bg-background-elevated p-6 flex flex-col gap-4">

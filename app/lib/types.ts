@@ -27,6 +27,11 @@ export type StatsSummary = {
   sessionsThisWeek: number;
   averageScoreThisWeek: number | null;
   totalSessions: number;
+  // Average overallScore across every session the caller has ever recorded.
+  averageScore: number | null;
+  // Modules where every chapter is completed and the exam is passed.
+  completedModules: number;
+  passedExams: number;
 };
 
 // Mirrors a PracticeSession row from GET /practice-sessions and
@@ -35,6 +40,11 @@ export type PracticeSessionRecord = {
   id: string;
   topicId: string | null;
   topicName: string;
+  // Set when this session is a chapter roleplay practice or a graded module
+  // exam attempt (mutually exclusive). Both null means an ad-hoc /record
+  // pitch practice.
+  chapterId: string | null;
+  examId: string | null;
   overallScore: number;
   verdict: string;
   categories: { name: string; score: number; feedback: string; tips: string[] }[];

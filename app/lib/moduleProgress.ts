@@ -32,3 +32,20 @@ export function getExamStatus(trainingModule: TrainingModule): ExamStatus {
   const { completed, total } = getChapterProgress(trainingModule);
   return total > 0 && completed === total ? "ready" : "locked";
 }
+
+// The next chapter a trainee should work on — the first one, in order, that
+// isn't completed yet. Null once every chapter is done (the exam is what's
+// left).
+export function getCurrentChapter(trainingModule: TrainingModule) {
+  return trainingModule.chapters.find((c) => c.completedAt === null) ?? null;
+}
+
+// Picks the module the homepage's "continue learning" card should highlight:
+// the first in-progress module (by order), falling back to the first
+// not-yet-started one. Null once every module is completed, or there are
+// none at all.
+export function pickContinueModule(modules: TrainingModule[]): TrainingModule | null {
+  const inProgress = modules.find((m) => getModuleStatus(m) === "in_progress");
+  if (inProgress) return inProgress;
+  return modules.find((m) => getModuleStatus(m) === "not_started") ?? null;
+}

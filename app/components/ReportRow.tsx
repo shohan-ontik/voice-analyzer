@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRightIcon } from "./icons";
 import type { EvaluationReport, ReportKind } from "../lib/reportsData";
 
@@ -10,7 +11,10 @@ export function ReportRow({ report }: { report: EvaluationReport }) {
   const meta = KIND_META[report.kind];
 
   return (
-    <div className="rounded-2xl border border-border bg-background-elevated p-5 flex items-center gap-5 flex-wrap">
+    <Link
+      href={`/history/${report.id}`}
+      className="rounded-2xl border border-border bg-background-elevated p-5 flex items-center gap-5 flex-wrap cursor-pointer hover:border-navy/30 transition-colors"
+    >
       <div className="w-14 h-14 rounded-2xl border-2 border-success bg-success-soft flex flex-col items-center justify-center shrink-0">
         <span className="font-display font-bold text-lg text-success leading-none">{report.score}</span>
         <span className="text-[10px] text-success leading-none mt-0.5">/100</span>
@@ -26,10 +30,10 @@ export function ReportRow({ report }: { report: EvaluationReport }) {
         <p className="text-[12.5px] text-foreground-muted leading-relaxed truncate">&ldquo;{report.feedback}&rdquo;</p>
       </div>
 
-      <button type="button" className="flex items-center gap-1 text-[13px] font-bold text-navy shrink-0">
+      <span className="flex items-center gap-1 text-[13px] font-bold text-navy shrink-0">
         ফুল রিপোর্ট দেখুন
         <ArrowRightIcon size={14} />
-      </button>
-    </div>
+      </span>
+    </Link>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ReportRow } from "../components/ReportRow";
 import { SearchIcon } from "../components/icons";
-import { evaluationReports, type ReportKind } from "../lib/reportsData";
+import type { EvaluationReport, ReportKind } from "../lib/reportsData";
+import type { PracticeSessionRecord } from "../lib/types";
+import { authFetch } from "../lib/clientFetch";
 
 type FilterKey = "all" | ReportKind;
 
@@ -13,11 +15,51 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "exam", label: "এক্সাম" },
 ];
 
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+function toReport(session: PracticeSessionRecord): EvaluationReport {
+  return {
+    id: session.id,
+    score: session.overallScore,
+    // examId set => a graded module exam attempt; everything else (ad-hoc
+    // /record pitches and chapter roleplay practice) counts as practice.
+    kind: session.examId ? "exam" : "practice",
+    date: formatDate(session.createdAt),
+    title: session.topicName,
+    feedback: session.verdict,
+  };
+}
+
 export default function HistoryPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [reports, setReports] = useState<EvaluationReport[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredReports = evaluationReports.filter((r) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    authFetch("/api/sessions?pageSize=100")
+      .then(async (res) => {
+        const body = await res.json();
+        if (!res.ok) throw new Error(body?.error?.message ?? "Failed to load history.");
+        if (!cancelled) setReports((body.items as PracticeSessionRecord[]).map(toReport));
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load history.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredReports = (reports ?? []).filter((r) => {
     const matchesFilter = filter === "all" || r.kind === filter;
     const matchesQuery = query.trim() === "" || r.title.toLowerCase().includes(query.trim().toLowerCase());
     return matchesFilter && matchesQuery;
@@ -67,7 +109,11 @@ export default function HistoryPage() {
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {filteredReports.length === 0 ? (
+        {error ? (
+          <div className="text-center text-[13.5px] text-red-600 py-16">{error}</div>
+        ) : reports === null ? (
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">লোড হচ্ছে…</div>
+        ) : filteredReports.length === 0 ? (
           <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো রিপোর্ট খুঁজে পাওয়া যায়নি।</div>
         ) : (
           <div className="flex flex-col gap-4">

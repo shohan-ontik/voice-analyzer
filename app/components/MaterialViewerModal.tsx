@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { MATERIAL_TYPE_META } from "./MaterialRow";
-import { CheckCircleIcon, PauseIcon, PlayIcon, SparkleIcon, XIcon } from "./icons";
 import type { LearningMaterial } from "../lib/types";
+import { MATERIAL_TYPE_META } from "./MaterialRow";
+import { CheckCircleIcon, PauseIcon, PlayIcon, XIcon } from "./icons";
 
 function durationSeconds(meta: string) {
   const match = meta.match(/\d+/);
@@ -60,7 +59,8 @@ export function MaterialViewerModal({
   }, [onClose]);
 
   const typeMeta = MATERIAL_TYPE_META[material.type];
-  const progressPercent = isFakeTimeBased && totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
+  const progressPercent =
+    isFakeTimeBased && totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
 
   return (
     <div
@@ -76,14 +76,18 @@ export function MaterialViewerModal({
       >
         <div className="flex items-start justify-between gap-4 p-5 border-b border-border">
           <div className="flex items-center gap-3 min-w-0">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${typeMeta.iconWrapClass}`}>
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${typeMeta.iconWrapClass}`}
+            >
               <typeMeta.Icon size={17} />
             </div>
             <div className="min-w-0">
               <div className="text-[11px] font-semibold text-foreground-muted uppercase truncate">
                 {chapterHeadline}
               </div>
-              <div className="font-display font-bold text-[16px] text-foreground truncate">{material.title}</div>
+              <div className="font-display font-bold text-[16px] text-foreground truncate">
+                {material.title}
+              </div>
             </div>
           </div>
           <button
@@ -123,8 +127,12 @@ export function MaterialViewerModal({
             </button>
 
             <div className="text-center">
-              <div className="font-display font-bold text-[16px] text-white mb-1">{material.title}</div>
-              <div className="text-[13px] text-white/60">অডিও লেসন • {material.meta}</div>
+              <div className="font-display font-bold text-[16px] text-white mb-1">
+                {material.title}
+              </div>
+              <div className="text-[13px] text-white/60">
+                অডিও লেসন • {material.meta}
+              </div>
             </div>
 
             <div className="w-full flex items-center gap-3 mt-2">
@@ -140,7 +148,10 @@ export function MaterialViewerModal({
                 {formatTime(elapsed)} / {material.meta}
               </span>
               <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
-                <div className="h-full rounded-full bg-navy-border" style={{ width: `${progressPercent}%` }} />
+                <div
+                  className="h-full rounded-full bg-navy-border"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
             </div>
           </div>
@@ -160,14 +171,6 @@ export function MaterialViewerModal({
             <CheckCircleIcon size={15} />
             {completed ? "কমপ্লিট হয়েছে" : "কমপ্লিট হিসেবে মার্ক করুন"}
           </button>
-
-          <Link
-            href={roleplayHref}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-navy text-navy-ink font-display font-semibold text-[13px] cursor-pointer"
-          >
-            <SparkleIcon size={14} />
-            পিচ প্র্যাকটিস স্টার্ট করুন
-          </Link>
         </div>
       </div>
     </div>

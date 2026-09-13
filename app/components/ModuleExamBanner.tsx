@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AwardIcon, CalendarIcon, LockIcon, SparkleIcon } from "./icons";
 import type { ExamStatus } from "../lib/moduleProgress";
 import type { ModuleExam } from "../lib/types";
@@ -9,7 +10,7 @@ const STATUS_COPY: Record<ExamStatus, { description: string; cta: string }> = {
   },
   passed: {
     description: "অভিনন্দন! আপনি ইতিমধ্যে এই পরীক্ষায় সফলভাবে উত্তীর্ণ হয়েছেন।",
-    cta: "পাসড",
+    cta: "রিপোর্ট দেখুন",
   },
   locked: {
     description: "এই পরীক্ষা শুরু করতে আগে মডিউলের সব অধ্যায় সম্পন্ন করুন।",
@@ -17,10 +18,19 @@ const STATUS_COPY: Record<ExamStatus, { description: string; cta: string }> = {
   },
 };
 
-export function ModuleExamBanner({ exam, status }: { exam: ModuleExam; status: ExamStatus }) {
+export function ModuleExamBanner({
+  exam,
+  status,
+  moduleSlug,
+}: {
+  exam: ModuleExam;
+  status: ExamStatus;
+  moduleSlug: string;
+}) {
   const copy = STATUS_COPY[status];
   const locked = status === "locked";
   const passed = status === "passed";
+  const ctaHref = passed ? `/modules/${moduleSlug}/exam/record/report` : `/modules/${moduleSlug}/exam`;
 
   return (
     <div className="rounded-2xl border border-accent/30 bg-gradient-to-r from-accent-soft to-background-elevated p-5 flex items-center gap-4 flex-wrap">
@@ -47,16 +57,24 @@ export function ModuleExamBanner({ exam, status }: { exam: ModuleExam; status: E
         <p className="text-[13px] text-foreground-muted">{copy.description}</p>
       </div>
 
-      <button
-        type="button"
-        disabled={locked || passed}
-        className={`inline-flex items-center gap-1.5 px-5 py-3 rounded-full font-display font-semibold text-[13.5px] shrink-0 ${
-          locked || passed ? "bg-border text-foreground-muted cursor-not-allowed" : "bg-accent text-accent-ink"
-        }`}
-      >
-        {locked ? <LockIcon size={14} /> : <SparkleIcon size={14} />}
-        {copy.cta}
-      </button>
+      {locked ? (
+        <button
+          type="button"
+          disabled
+          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full font-display font-semibold text-[13.5px] shrink-0 bg-border text-foreground-muted cursor-not-allowed"
+        >
+          <LockIcon size={14} />
+          {copy.cta}
+        </button>
+      ) : (
+        <Link
+          href={ctaHref}
+          className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full font-display font-semibold text-[13.5px] shrink-0 bg-accent text-accent-ink cursor-pointer"
+        >
+          <SparkleIcon size={14} />
+          {copy.cta}
+        </Link>
+      )}
     </div>
   );
 }

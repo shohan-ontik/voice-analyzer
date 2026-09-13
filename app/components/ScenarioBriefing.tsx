@@ -15,10 +15,14 @@ export function ScenarioBriefing({
   topicTitle,
   scenario,
   recordHref,
+  onRegenerate,
+  regenerating,
 }: {
   topicTitle: string;
   scenario: PitchScenario;
   recordHref: string;
+  onRegenerate?: () => void;
+  regenerating?: boolean;
 }) {
   const [language, setLanguage] = useState("bn");
 
@@ -105,10 +109,12 @@ export function ScenarioBriefing({
       <div className="flex items-center justify-between gap-3 pt-2 border-t border-border flex-wrap">
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground-muted hover:text-foreground cursor-pointer"
+          onClick={onRegenerate}
+          disabled={regenerating}
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground-muted hover:text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <RefreshIcon size={15} />
-          নতুন সিনারিও জেনারেট করুন
+          <RefreshIcon size={15} className={regenerating ? "animate-spin" : undefined} />
+          {regenerating ? "AI সিনারিও তৈরি হচ্ছে…" : "নতুন সিনারিও জেনারেট করুন"}
         </button>
 
         <Link

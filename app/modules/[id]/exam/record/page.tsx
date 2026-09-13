@@ -3,27 +3,17 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftIcon, ChevronDownIcon, XIcon } from "../../../../../../components/icons";
-import type { AnalysisResult } from "../../../../../../lib/analysis";
-import { chapterHeadline } from "../../../../../../lib/chapterHeadline";
-import { authFetch } from "../../../../../../lib/clientFetch";
-import { reportCacheKey, writeCachedReport } from "../../../../../../lib/roleplayReportCache";
-import { readCachedScenario, scenarioCacheKey } from "../../../../../../lib/roleplayScenarioCache";
-import type { PitchScenario } from "../../../../../../lib/types";
-import { useModule } from "../../../../../../lib/useModules";
-
-function buildReferenceFacts(chapterDescription: string, scenario: PitchScenario) {
-  return `${chapterDescription}
-
-ক্লায়েন্টের অবজেকশন/প্রশ্ন: ${scenario.objection}
-রেপের উদ্দেশ্য: ${scenario.objective}
-মূল্যায়ন মানদণ্ড:
-${scenario.criteria.map((c) => `- ${c}`).join("\n")}`;
-}
+import { ArrowLeftIcon, AwardIcon, ChevronDownIcon, XIcon } from "../../../../components/icons";
+import type { AnalysisResult } from "../../../../lib/analysis";
+import { authFetch } from "../../../../lib/clientFetch";
+import { examReportCacheKey, writeCachedExamReport } from "../../../../lib/examReportCache";
+import { getExamStatus } from "../../../../lib/moduleProgress";
+import { useModule } from "../../../../lib/useModules";
 
 type Status = "requesting" | "countdown" | "recording" | "stopped";
 
 const COUNTDOWN_SECONDS = 5;
+const MAX_EXAM_SECONDS = 60;
 
 function pickAudioMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
@@ -37,14 +27,11 @@ function formatTime(totalSeconds: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export default function ChapterRoleplayRecordPage() {
+export default function ModuleExamRecordPage() {
   const router = useRouter();
-  const { id, chapterId } = useParams<{ id: string; chapterId: string }>();
+  const { id } = useParams<{ id: string }>();
   const { trainingModule, error: loadError, loading } = useModule(id);
-  const chapter = trainingModule?.chapters.find((c) => c.slug === chapterId);
-  const scenarioKey = scenarioCacheKey(id, chapterId);
 
-  const [aiScenario] = useState(() => readCachedScenario(scenarioKey));
   const [status, setStatus] = useState<Status>("requesting");
   const [micError, setMicError] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
@@ -82,7 +69,14 @@ export default function ChapterRoleplayRecordPage() {
     setSeconds(0);
     setStatus("recording");
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    let elapsed = 0;
+    timerRef.current = setInterval(() => {
+      elapsed += 1;
+      setSeconds(elapsed);
+      // The exam is capped at MAX_EXAM_SECONDS - auto-stop once it's hit,
+      // same as a manual stop.
+      if (elapsed >= MAX_EXAM_SECONDS) stopRecording();
+    }, 1000);
   }
 
   function beginCountdown(stream: MediaStream) {
@@ -144,31 +138,52 @@ export default function ChapterRoleplayRecordPage() {
     if (streamRef.current) beginCountdown(streamRef.current);
   }
 
-  async function finishAndAnalyze() {
-    if (!blobRef.current || !trainingModule || !chapter) return;
+  async function submitExam() {
+    if (!blobRef.current || !trainingModule) return;
     setSubmitting(true);
     setSubmitError(null);
 
     try {
-      const headline = chapterHeadline(chapter.title);
+      const exam = trainingModule.exam;
       const formData = new FormData();
       formData.append("file", blobRef.current, "recording.webm");
       formData.append("mode", "audio");
-      formData.append("passage", buildReferenceFacts(chapter.description, scenario));
-      formData.append("topicName", headline);
+      formData.append("passage", exam.scenario);
+      formData.append("topicName", exam.title);
 
       const res = await authFetch("/api/analyze", { method: "POST", body: formData });
       const body = await res.json();
-      if (!res.ok) throw new Error(body?.error ?? "বিশ্লেষণ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
+      if (!res.ok) throw new Error(body?.error ?? "মূল্যায়ন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
 
-      writeCachedReport(reportCacheKey(id, chapterId), {
-        result: body as AnalysisResult,
+      const result = body as AnalysisResult;
+      const passed = result.overall >= exam.passMark;
+
+      // Best-effort: there's no backend endpoint yet that ties a session to
+      // a specific exam, so this just records a generic practice session.
+      // Not awaited - a persistence failure shouldn't block the local report.
+      authFetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topicId: exam.id,
+          topicName: exam.title,
+          overall: result.overall,
+          verdict: result.verdict,
+          categories: result.categories,
+          transcript: result.transcript,
+        }),
+      }).catch(() => {});
+
+      writeCachedExamReport(examReportCacheKey(trainingModule.slug), {
+        result,
         moduleTitle: trainingModule.title,
-        chapterTitle: headline,
+        examTitle: exam.title,
+        passMark: exam.passMark,
+        passed,
       });
-      router.push(`${chapterHref}/roleplay/record/report`);
+      router.push(`/modules/${trainingModule.slug}/exam/record/report`);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "বিশ্লেষণ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
+      setSubmitError(err instanceof Error ? err.message : "মূল্যায়ন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
       setSubmitting(false);
     }
   }
@@ -188,10 +203,10 @@ export default function ChapterRoleplayRecordPage() {
     );
   }
 
-  if (!chapter) {
+  if (getExamStatus(trainingModule) === "locked") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
-        <p className="text-[13.5px] text-foreground-muted">অধ্যায় খুঁজে পাওয়া যায়নি।</p>
+        <p className="text-[13.5px] text-foreground-muted">এই পরীক্ষা শুরু করতে আগে মডিউলের সব অধ্যায় সম্পন্ন করুন।</p>
         <Link href={`/modules/${trainingModule.slug}`} className="text-[13px] font-semibold text-navy cursor-pointer">
           মডিউলে ফিরে যান
         </Link>
@@ -199,18 +214,18 @@ export default function ChapterRoleplayRecordPage() {
     );
   }
 
-  const chapterHref = `/modules/${trainingModule.slug}/chapters/${chapter.slug}`;
-  const scenario = aiScenario ?? chapter.scenario;
+  const moduleHref = `/modules/${trainingModule.slug}`;
+  const exam = trainingModule.exam;
 
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="hidden lg:flex items-center gap-2 px-10 pt-8 text-[13px]">
         <Link
-          href={chapterHref}
+          href={moduleHref}
           className="flex items-center gap-1 font-semibold text-foreground-muted hover:text-foreground cursor-pointer"
         >
           <ArrowLeftIcon size={14} />
-          অধ্যায়ে ফিরুন
+          মডিউলে ফিরুন
         </Link>
       </div>
 
@@ -222,19 +237,21 @@ export default function ChapterRoleplayRecordPage() {
           >
             <div className="flex items-center justify-between p-4 lg:p-6">
               <Link
-                href={chapterHref}
+                href={moduleHref}
                 aria-label="বন্ধ করুন"
                 className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-navy-ink/10 text-navy-ink flex items-center justify-center cursor-pointer lg:hidden"
               >
                 <XIcon size={16} />
               </Link>
 
-              <div className="hidden lg:block font-display font-bold text-[15px] text-navy-ink">{scenario.clientName}</div>
+              <div className="hidden lg:block font-display font-bold text-[15px] text-navy-ink">{exam.title}</div>
 
               {status === "recording" && !micError && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-ink/10">
                   <div className="w-2 h-2 rounded-full bg-accent" style={{ animation: "rec-pulse 1.1s ease-in-out infinite" }} />
-                  <span className="font-display font-semibold text-[13px] text-navy-ink tabular-nums">{formatTime(seconds)}</span>
+                  <span className="font-display font-semibold text-[13px] text-navy-ink tabular-nums">
+                    {formatTime(seconds)} / {formatTime(MAX_EXAM_SECONDS)}
+                  </span>
                 </div>
               )}
             </div>
@@ -244,11 +261,11 @@ export default function ChapterRoleplayRecordPage() {
                 <p className="text-[13.5px] text-navy-ink/85 leading-relaxed max-w-[320px]">{micError}</p>
               ) : (
                 <>
-                  <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-navy-ink/10 border-2 border-navy-ink/20 flex items-center justify-center font-display font-bold text-[28px] lg:text-[36px] text-navy-ink">
-                    {scenario.clientInitials}
+                  <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-navy-ink/10 border-2 border-navy-ink/20 flex items-center justify-center text-navy-ink">
+                    <AwardIcon size={36} />
                   </div>
-                  <div className="font-display font-bold text-[18px] lg:text-[22px] text-navy-ink">{scenario.clientName}</div>
-                  <div className="text-[13px] lg:text-[14px] text-navy-ink/70">{scenario.clientTitle}</div>
+                  <div className="font-display font-bold text-[18px] lg:text-[22px] text-navy-ink">{exam.title}</div>
+                  <div className="text-[13px] lg:text-[14px] text-navy-ink/70">{exam.moduleLabel}</div>
                   {status === "requesting" && (
                     <div className="text-[12.5px] text-navy-ink/60 mt-2">মাইক্রোফোন প্রস্তুত হচ্ছে…</div>
                   )}
@@ -261,7 +278,7 @@ export default function ChapterRoleplayRecordPage() {
                       >
                         {countdown}
                       </div>
-                      <div className="text-[12.5px] lg:text-[13px] text-navy-ink/60">রেকর্ডিং শুরু হচ্ছে {countdown} সেকেন্ডে…</div>
+                      <div className="text-[12.5px] lg:text-[13px] text-navy-ink/60">পরীক্ষা শুরু হচ্ছে {countdown} সেকেন্ডে…</div>
                     </div>
                   )}
                 </>
@@ -298,11 +315,11 @@ export default function ChapterRoleplayRecordPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={finishAndAnalyze}
+                        onClick={submitExam}
                         disabled={submitting}
                         className="px-5 py-2.5 rounded-lg bg-white text-navy font-display font-semibold text-[13px] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                       >
-                        {submitting ? "বিশ্লেষণ চলছে…" : "শেষ করুন"}
+                        {submitting ? "ফলাফল যাচাই হচ্ছে…" : "জমা দিন"}
                       </button>
                     </div>
                     {submitError && (
@@ -322,14 +339,19 @@ export default function ChapterRoleplayRecordPage() {
               onClick={() => setReferenceExpanded((e) => !e)}
               className="flex items-center justify-between cursor-pointer"
             >
-              <span className="font-display font-bold text-[13.5px] text-foreground">সিনারিও রেফারেন্স</span>
+              <span className="font-display font-bold text-[13.5px] text-foreground">ক্লায়েন্টের প্রশ্ন</span>
               <ChevronDownIcon
                 size={16}
                 className={`text-foreground-muted transition-transform ${referenceExpanded ? "" : "rotate-180"}`}
               />
             </button>
             {referenceExpanded && (
-              <p className="text-[13px] text-foreground-muted leading-relaxed italic">&ldquo;{scenario.objection}&rdquo;</p>
+              <>
+                <p className="text-[13px] text-foreground-muted leading-relaxed italic">&ldquo;{exam.scenario}&rdquo;</p>
+                <p className="text-[12px] text-foreground-muted mt-1">
+                  পাস মার্ক: <span className="font-semibold text-foreground">{exam.passMark}%</span>
+                </p>
+              </>
             )}
           </div>
         </div>

@@ -109,7 +109,7 @@ export default function ModuleDetailPage() {
             <ChapterRow key={chapter.id} moduleId={trainingModule.slug} chapter={chapter} />
           ))}
 
-          <ModuleExamBanner exam={trainingModule.exam} status={examStatus} />
+          <ModuleExamBanner exam={trainingModule.exam} status={examStatus} moduleSlug={trainingModule.slug} />
         </div>
       </div>
     </div>
