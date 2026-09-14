@@ -158,15 +158,15 @@ export default function ModuleExamRecordPage() {
       const result = body as AnalysisResult;
       const passed = result.overall >= exam.passMark;
 
-      // Best-effort: there's no backend endpoint yet that ties a session to
-      // a specific exam, so this just records a generic practice session.
-      // Not awaited - a persistence failure shouldn't block the local report.
+      // Best-effort: not awaited, a persistence failure shouldn't block the
+      // local report from showing.
       authFetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          topicId: exam.id,
+          topicId: null,
           topicName: exam.title,
+          examId: exam.id,
           overall: result.overall,
           verdict: result.verdict,
           categories: result.categories,

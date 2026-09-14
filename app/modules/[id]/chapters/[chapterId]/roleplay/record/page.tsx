@@ -161,8 +161,26 @@ export default function ChapterRoleplayRecordPage() {
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error ?? "বিশ্লেষণ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
 
+      const result = body as AnalysisResult;
+
+      // Best-effort: not awaited, a persistence failure shouldn't block the
+      // local report from showing.
+      authFetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topicId: null,
+          topicName: headline,
+          chapterId: chapter.id,
+          overall: result.overall,
+          verdict: result.verdict,
+          categories: result.categories,
+          transcript: result.transcript,
+        }),
+      }).catch(() => {});
+
       writeCachedReport(reportCacheKey(id, chapterId), {
-        result: body as AnalysisResult,
+        result,
         moduleTitle: trainingModule.title,
         chapterTitle: headline,
       });

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { LearningMaterial } from "../lib/types";
 import { MaterialRow } from "./MaterialRow";
 import { MaterialViewerModal } from "./MaterialViewerModal";
-import type { LearningMaterial } from "../lib/types";
 
 export function MaterialsSection({
   materials,

@@ -1,31 +1,27 @@
-"use client";
-
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { ChapterRow } from "../../components/ChapterRow";
-import { ModuleExamBanner } from "../../components/ModuleExamBanner";
-import { MODULE_STATUS_META } from "../../components/ModuleCard";
+import { notFound, redirect } from "next/navigation";
+import { ModuleExamBanner } from "../../components/modules/ModuleExamBanner";
+import { ChapterRow } from "../../components/modules/ChapterRow";
+import { MODULE_STATUS_META } from "../../components/modules/ModuleCard";
 import { ArrowLeftIcon, AwardIcon, BookIcon } from "../../components/icons";
+import { ApiClientError, getModule } from "../../lib/apiClient";
 import { getChapterProgress, getExamStatus, getModuleStatus } from "../../lib/moduleProgress";
-import { useModule } from "../../lib/useModules";
+import { getSessionToken } from "../../lib/session";
+import type { TrainingModule } from "../../lib/types";
 
-export default function ModuleDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { trainingModule, error, loading } = useModule(id);
+export default async function ModuleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
-  if (loading) {
-    return <div className="flex-1 flex items-center justify-center text-[13.5px] text-foreground-muted">লোড হচ্ছে…</div>;
-  }
+  const token = await getSessionToken();
+  if (!token) redirect("/login");
 
-  if (error || !trainingModule) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
-        <p className="text-[13.5px] text-foreground-muted">{error ?? "মডিউল খুঁজে পাওয়া যায়নি।"}</p>
-        <Link href="/modules" className="text-[13px] font-semibold text-navy">
-          সকল মডিউল ফিরে যান
-        </Link>
-      </div>
-    );
+  let trainingModule: TrainingModule;
+  try {
+    trainingModule = await getModule(token, id);
+  } catch (err) {
+    if (err instanceof ApiClientError && err.status === 404) notFound();
+    if (err instanceof ApiClientError && err.status === 401) redirect("/login");
+    throw err;
   }
 
   const meta = MODULE_STATUS_META[getModuleStatus(trainingModule)];

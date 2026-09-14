@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon } from "./icons";
-import type { ExamStatus } from "../lib/moduleProgress";
-import type { ModuleExam } from "../lib/types";
+import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon } from "../icons";
+import type { ExamStatus } from "../../lib/moduleProgress";
+import type { ModuleExam } from "../../lib/types";
 
 const STATUS_META: Record<ExamStatus, { label: string; badgeClass: string; Icon: typeof CheckCircleIcon }> = {
   passed: { label: "পাসড", badgeClass: "bg-success text-white", Icon: CheckCircleIcon },

@@ -30,7 +30,7 @@ export function AnalysisBreakdown({
             <button
               type="button"
               onClick={() => setExpanded((prev) => ({ ...prev, [cat.name]: !prev[cat.name] }))}
-              className="w-full text-left p-[18px_22px] flex items-center gap-4"
+              className="cursor-pointer w-full text-left p-4 sm:p-[18px_22px] flex items-center gap-3 sm:gap-4"
             >
               <div className="w-[34px] h-[34px] rounded-[9px] bg-teal-soft flex items-center justify-center flex-shrink-0">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +69,7 @@ export function AnalysisBreakdown({
               </svg>
             </button>
             {isOpen && (
-              <div className="px-[22px] pb-5 pl-[72px] flex flex-col gap-2">
+              <div className="px-4 sm:px-[22px] pb-5 pl-8 sm:pl-[72px] flex flex-col gap-2">
                 {cat.tips.map((tip) => (
                   <div key={tip} className="flex gap-2 text-[13px] text-foreground items-start">
                     <div className="w-[5px] h-[5px] rounded-full bg-accent mt-[7px] flex-shrink-0" />
@@ -87,7 +87,7 @@ export function AnalysisBreakdown({
         <button
           type="button"
           onClick={() => setShowTranscript((v) => !v)}
-          className="w-full text-left p-[18px_22px] flex items-center justify-between"
+          className="cursor-pointer w-full text-left p-4 sm:p-[18px_22px] flex items-center justify-between"
         >
           <div className="font-display font-semibold text-[15px] text-foreground">View transcript</div>
           <svg
@@ -106,8 +106,8 @@ export function AnalysisBreakdown({
           </svg>
         </button>
         {showTranscript && (
-          <div className="px-[22px] pb-[22px]">
-            <div className="font-bangla text-lg leading-[2] text-foreground">
+          <div className="px-4 sm:px-[22px] pb-4 sm:pb-[22px]">
+            <div className="font-bangla text-base sm:text-lg leading-[1.8] sm:leading-[2] text-foreground">
               {transcript.map((seg, i) => (
                 <span
                   key={i}
@@ -123,7 +123,7 @@ export function AnalysisBreakdown({
                 </span>
               ))}
             </div>
-            <div className="flex gap-5 mt-4 pt-3.5 border-t border-border">
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3.5 border-t border-border">
               <div className="flex items-center gap-1.5 text-xs text-foreground-muted">
                 <div className="w-[26px] h-[3px] rounded-sm" style={{ background: "var(--foreground-muted)" }} />
                 Filler word

@@ -1,11 +1,22 @@
-"use client";
-
-import { ExamCard } from "../components/ExamCard";
+import { redirect } from "next/navigation";
+import { ExamCard } from "../components/exams/ExamCard";
+import { ApiClientError, listModules } from "../lib/apiClient";
 import { getExamStatus } from "../lib/moduleProgress";
-import { useModules } from "../lib/useModules";
+import { getSessionToken } from "../lib/session";
+import type { TrainingModule } from "../lib/types";
 
-export default function ExamsPage() {
-  const { modules, error } = useModules();
+export default async function ExamsPage() {
+  const token = await getSessionToken();
+  if (!token) redirect("/login");
+
+  let modules: TrainingModule[];
+  try {
+    const { items } = await listModules(token);
+    modules = items;
+  } catch (err) {
+    if (err instanceof ApiClientError && err.status === 401) redirect("/login");
+    throw err;
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -19,10 +30,8 @@ export default function ExamsPage() {
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {error ? (
-          <div className="text-center text-[13.5px] text-red-600 py-16">{error}</div>
-        ) : !modules ? (
-          <div className="text-center text-[13.5px] text-foreground-muted py-16">লোড হচ্ছে…</div>
+        {modules.length === 0 ? (
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো মডিউল খুঁজে পাওয়া যায়নি।</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {modules.map((m) => (

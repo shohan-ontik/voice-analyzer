@@ -31,6 +31,8 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     topicId?: string | null;
     topicName?: string;
+    chapterId?: string | null;
+    examId?: string | null;
     overall?: number;
     verdict?: string;
     categories?: AnalysisCategory[];
@@ -53,6 +55,8 @@ export async function POST(request: Request) {
     const saved = await createPracticeSession(token, {
       topicId: body.topicId ?? null,
       topicName: body.topicName,
+      chapterId: body.chapterId ?? null,
+      examId: body.examId ?? null,
       overall: body.overall,
       verdict: body.verdict,
       categories: body.categories,

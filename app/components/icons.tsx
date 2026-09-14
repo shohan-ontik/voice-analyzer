@@ -358,6 +358,16 @@ export function MailIcon(props: IconProps) {
   );
 }
 
+export function GraduationCapIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m2 9 10-5 10 5-10 5-10-5Z" />
+      <path d="M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
+      <path d="M22 9v6" />
+    </svg>
+  );
+}
+
 export function ShareIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

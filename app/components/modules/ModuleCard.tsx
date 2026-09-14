@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowRightIcon, AwardIcon, CheckCircleIcon, ClockIcon, LockIcon } from "./icons";
-import { getChapterProgress, getModuleStatus, type ModuleStatus } from "../lib/moduleProgress";
-import type { TrainingModule } from "../lib/types";
+import { ArrowRightIcon, AwardIcon, CheckCircleIcon, ClockIcon, LockIcon } from "../icons";
+import { getChapterProgress, getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
+import type { TrainingModule } from "../../lib/types";
 
 export const MODULE_STATUS_META: Record<
   ModuleStatus,

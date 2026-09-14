@@ -87,6 +87,8 @@ export function createPracticeSession(
   input: {
     topicId: string | null;
     topicName: string;
+    chapterId?: string | null;
+    examId?: string | null;
     overall: number;
     verdict: string;
     categories: AnalysisCategory[];
