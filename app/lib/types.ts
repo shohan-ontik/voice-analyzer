@@ -32,6 +32,10 @@ export type StatsSummary = {
   // Modules where every chapter is completed and the exam is passed.
   completedModules: number;
   passedExams: number;
+  // Pitches (non-exam sessions) left this calendar month, out of a cap of 18.
+  pitchesRemainingThisMonth: number;
+  // Total pitches (non-exam sessions) the caller has ever participated in.
+  totalPitchesEvaluated: number;
 };
 
 // Mirrors a PracticeSession row from GET /practice-sessions and

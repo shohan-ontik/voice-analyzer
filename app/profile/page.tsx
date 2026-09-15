@@ -138,9 +138,9 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "কমপ্লিট মডিউল", value: stats ? String(stats.completedModules) : "…" },
-              { label: "প্র্যাকটিস পিচ", value: stats ? String(stats.totalSessions) : "…" },
-              { label: "পাস করা এক্সাম", value: stats ? String(stats.passedExams) : "…" },
+              { label: "বাকি পিচ", value: stats ? String(stats.pitchesRemainingThisMonth) : "…" },
+              { label: "মূল্যায়িত পিচ", value: stats ? String(stats.totalPitchesEvaluated) : "…" },
+              { label: "কমপ্লেটেড মডিউল", value: stats ? String(stats.completedModules) : "…" },
               { label: "গড় স্কোর", value: stats?.averageScore != null ? `${stats.averageScore}%` : "…" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl bg-background border border-border p-4 lg:p-5 text-center">
