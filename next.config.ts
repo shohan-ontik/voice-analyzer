@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   // bundling it rewrites that path, so it must stay a native Node require.
   serverExternalPackages: ["ffmpeg-static"],
   allowedDevOrigins: ["hortencia-levitative-sordidly.ngrok-free.dev"],
+  // Produces .next/standalone, a self-contained server used by the Docker image.
+  output: "standalone",
 };
 
 export default nextConfig;
