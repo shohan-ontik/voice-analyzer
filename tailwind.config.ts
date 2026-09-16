@@ -43,9 +43,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["var(--font-work-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-noto-serif-bengali)", "ui-serif", "system-ui", "serif"],
         display: ["var(--font-space-grotesk)", "ui-sans-serif", "system-ui", "sans-serif"],
-        bangla: ["var(--font-hind-siliguri)", "ui-sans-serif", "system-ui", "sans-serif"],
+        bangla: ["var(--font-noto-serif-bengali)", "ui-serif", "system-ui", "serif"],
       },
     },
   },

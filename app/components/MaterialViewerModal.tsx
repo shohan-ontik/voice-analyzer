@@ -16,6 +16,10 @@ function formatTime(totalSeconds: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+// A video can only be marked complete once the viewer has reached this
+// fraction of its duration — matches the same 40% rule for every video.
+const VIDEO_COMPLETE_THRESHOLD = 0.4;
+
 export function MaterialViewerModal({
   material,
   chapterHeadline,
@@ -23,14 +27,14 @@ export function MaterialViewerModal({
   completed,
   onMarkComplete,
   onClose,
-}: {
+}: Readonly<{
   material: LearningMaterial;
   chapterHeadline: string;
   roleplayHref: string;
   completed: boolean;
   onMarkComplete: () => void;
   onClose: () => void;
-}) {
+}>) {
   // Audio playback is still a mocked timer — only video is wired to a real
   // stream so far.
   const isFakeTimeBased = material.type === "audio";
@@ -38,6 +42,7 @@ export function MaterialViewerModal({
 
   const [playing, setPlaying] = useState(true);
   const [elapsed, setElapsed] = useState(() => Math.round(totalSeconds * 0.35));
+  const [videoWatchedFraction, setVideoWatchedFraction] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -61,6 +66,10 @@ export function MaterialViewerModal({
   const typeMeta = MATERIAL_TYPE_META[material.type];
   const progressPercent =
     isFakeTimeBased && totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
+  const videoLocked =
+    material.type === "video" &&
+    !completed &&
+    videoWatchedFraction < VIDEO_COMPLETE_THRESHOLD;
 
   return (
     <div
@@ -114,6 +123,14 @@ export function MaterialViewerModal({
             autoPlay
             className="w-full max-h-[70vh] bg-black"
             src={`/api/materials/${material.id}/video`}
+            onTimeUpdate={(e) => {
+              const video = e.currentTarget;
+              if (!Number.isFinite(video.duration) || video.duration <= 0)
+                return;
+              setVideoWatchedFraction((prev) =>
+                Math.max(prev, video.currentTime / video.duration),
+              );
+            }}
           />
         ) : (
           <div className="bg-navy px-8 py-12 flex flex-col items-center gap-4">
@@ -161,16 +178,25 @@ export function MaterialViewerModal({
           <button
             type="button"
             onClick={onMarkComplete}
-            disabled={completed}
+            disabled={completed || videoLocked}
             className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border-[1.5px] font-display font-semibold text-[13px] transition-colors ${
               completed
                 ? "bg-success border-success text-white cursor-default"
-                : "border-success/40 text-success cursor-pointer"
+                : videoLocked
+                  ? "border-border text-foreground-muted cursor-not-allowed"
+                  : "border-success/40 text-success cursor-pointer"
             }`}
           >
             <CheckCircleIcon size={15} />
             {completed ? "কমপ্লিট হয়েছে" : "কমপ্লিট হিসেবে মার্ক করুন"}
           </button>
+          {videoLocked && (
+            <span className="text-[12px] text-foreground-muted">
+              ভিডিওর অন্তত {Math.round(VIDEO_COMPLETE_THRESHOLD * 100)}% না দেখা
+              পর্যন্ত কমপ্লিট করা যাবে না — এখন পর্যন্ত{" "}
+              {Math.round(videoWatchedFraction * 100)}% দেখা হয়েছে
+            </span>
+          )}
         </div>
       </div>
     </div>

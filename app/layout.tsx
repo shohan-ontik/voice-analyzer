@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hind_Siliguri, Space_Grotesk, Work_Sans } from "next/font/google";
+import { Noto_Serif_Bengali, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "./providers";
 import { AppChrome } from "./components/AppChrome";
@@ -10,16 +10,10 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
 });
 
-const workSans = Work_Sans({
-  variable: "--font-work-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const hindSiliguri = Hind_Siliguri({
-  variable: "--font-hind-siliguri",
+const notoSerifBengali = Noto_Serif_Bengali({
+  variable: "--font-noto-serif-bengali",
   subsets: ["bengali", "latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${workSans.variable} ${hindSiliguri.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${notoSerifBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <AppStateProvider>

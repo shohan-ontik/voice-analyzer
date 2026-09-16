@@ -39,8 +39,8 @@ export function BookIcon(props: IconProps) {
 export function AwardIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
-      <circle cx="12" cy="8" r="6" />
-      <path d="m9 13.5-1.5 7 4.5-2 4.5 2-1.5-7" />
+      <circle cx="12" cy="9" r="7" />
+      <path d="m8.5 15-4.5 7 8-3 8 3-4.5-7" />
     </svg>
   );
 }

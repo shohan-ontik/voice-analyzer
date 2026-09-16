@@ -13,7 +13,7 @@ import { useModule } from "../../../../lib/useModules";
 type Status = "requesting" | "countdown" | "recording" | "stopped";
 
 const COUNTDOWN_SECONDS = 5;
-const MAX_EXAM_SECONDS = 60;
+const MAX_EXAM_SECONDS = 120;
 
 function pickAudioMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];

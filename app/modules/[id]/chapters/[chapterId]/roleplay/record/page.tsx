@@ -24,6 +24,7 @@ ${scenario.criteria.map((c) => `- ${c}`).join("\n")}`;
 type Status = "requesting" | "countdown" | "recording" | "stopped";
 
 const COUNTDOWN_SECONDS = 5;
+const MAX_PITCH_SECONDS = 120;
 
 function pickAudioMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
@@ -82,7 +83,12 @@ export default function ChapterRoleplayRecordPage() {
     setSeconds(0);
     setStatus("recording");
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    let elapsed = 0;
+    timerRef.current = setInterval(() => {
+      elapsed += 1;
+      setSeconds(elapsed);
+      if (elapsed >= MAX_PITCH_SECONDS) stopRecording();
+    }, 1000);
   }
 
   function beginCountdown(stream: MediaStream) {
@@ -252,7 +258,9 @@ export default function ChapterRoleplayRecordPage() {
               {status === "recording" && !micError && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-ink/10">
                   <div className="w-2 h-2 rounded-full bg-accent" style={{ animation: "rec-pulse 1.1s ease-in-out infinite" }} />
-                  <span className="font-display font-semibold text-[13px] text-navy-ink tabular-nums">{formatTime(seconds)}</span>
+                  <span className="font-display font-semibold text-[13px] text-navy-ink tabular-nums">
+                    {formatTime(seconds)} / {formatTime(MAX_PITCH_SECONDS)}
+                  </span>
                 </div>
               )}
             </div>

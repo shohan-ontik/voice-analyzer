@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CheckCircleIcon, GlobeIcon, RefreshIcon, SparkleIcon, SpeakerIcon, VideoIcon } from "./icons";
 import type { PitchScenario } from "../lib/types";
+import {
+  CheckCircleIcon,
+  GlobeIcon,
+  RefreshIcon,
+  SparkleIcon,
+  SpeakerIcon,
+  VideoIcon,
+} from "./icons";
 
 const LANGUAGES = [
   { key: "bn", label: "বাংলা" },
@@ -17,13 +24,13 @@ export function ScenarioBriefing({
   recordHref,
   onRegenerate,
   regenerating,
-}: {
+}: Readonly<{
   topicTitle: string;
   scenario: PitchScenario;
   recordHref: string;
   onRegenerate?: () => void;
   regenerating?: boolean;
-}) {
+}>) {
   const [language, setLanguage] = useState("bn");
 
   return (
@@ -33,8 +40,12 @@ export function ScenarioBriefing({
           <SparkleIcon size={17} />
         </div>
         <div className="min-w-0">
-          <div className="text-[12px] font-bold text-navy">রোলপ্লে প্র্যাকটিস সিনারিও</div>
-          <div className="font-display font-bold text-[16px] text-foreground truncate">{topicTitle}</div>
+          <div className="text-[12px] font-bold text-navy">
+            রোলপ্লে প্র্যাকটিস সিনারিও
+          </div>
+          <div className="font-display font-bold text-[16px] text-foreground truncate">
+            {topicTitle}
+          </div>
         </div>
       </div>
 
@@ -50,7 +61,9 @@ export function ScenarioBriefing({
               type="button"
               onClick={() => setLanguage(l.key)}
               className={`px-3.5 py-1.5 rounded-md text-[12.5px] font-semibold transition-colors cursor-pointer ${
-                language === l.key ? "bg-navy text-navy-ink" : "text-foreground-muted"
+                language === l.key
+                  ? "bg-navy text-navy-ink"
+                  : "text-foreground-muted"
               }`}
             >
               {l.label}
@@ -69,7 +82,9 @@ export function ScenarioBriefing({
               <div className="font-display font-bold text-[14.5px] text-foreground truncate">
                 {scenario.clientName}
               </div>
-              <div className="text-[12px] text-foreground-muted truncate">{scenario.clientTitle}</div>
+              <div className="text-[12px] text-foreground-muted truncate">
+                {scenario.clientTitle}
+              </div>
             </div>
           </div>
           <button
@@ -82,25 +97,38 @@ export function ScenarioBriefing({
         </div>
 
         <div className="rounded-lg bg-navy-soft p-3.5">
-          <div className="text-[12px] font-bold text-navy mb-1.5">ক্লায়েন্টের অবজেকশন / কোশ্চেন</div>
-          <p className="text-[13.5px] text-foreground italic leading-relaxed">&ldquo;{scenario.objection}&rdquo;</p>
+          <div className="text-[12px] font-bold text-navy mb-1.5">
+            ক্লায়েন্টের অবজেকশন / কোশ্চেন
+          </div>
+          <p className="text-[13.5px] text-foreground italic leading-relaxed">
+            &ldquo;{scenario.objection}&rdquo;
+          </p>
         </div>
       </div>
 
       <div>
-        <div className="text-[13px] font-bold text-navy mb-2">আপনার মেইন অবজেক্টিভ</div>
+        <div className="text-[13px] font-bold text-navy mb-2">
+          আপনার মেইন অবজেক্টিভ
+        </div>
         <div className="rounded-xl bg-background p-4 text-[13.5px] text-foreground-muted leading-relaxed">
           {scenario.objective}
         </div>
       </div>
 
       <div>
-        <div className="text-[13px] font-bold text-navy mb-2">ইভালুয়েশন ক্রাইটেরিয়া</div>
+        <div className="text-[13px] font-bold text-navy mb-2">
+          ইভালুয়েশন ক্রাইটেরিয়া
+        </div>
         <div className="flex flex-col gap-2">
           {scenario.criteria.map((criterion) => (
             <div key={criterion} className="flex items-start gap-2.5">
-              <CheckCircleIcon size={16} className="text-success shrink-0 mt-0.5" />
-              <p className="text-[13px] text-foreground-muted leading-relaxed">{criterion}</p>
+              <CheckCircleIcon
+                size={16}
+                className="text-success shrink-0 mt-0.5"
+              />
+              <p className="text-[13px] text-foreground-muted leading-relaxed">
+                {criterion}
+              </p>
             </div>
           ))}
         </div>
@@ -113,8 +141,13 @@ export function ScenarioBriefing({
           disabled={regenerating}
           className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground-muted hover:text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <RefreshIcon size={15} className={regenerating ? "animate-spin" : undefined} />
-          {regenerating ? "AI সিনারিও তৈরি হচ্ছে…" : "নতুন সিনারিও জেনারেট করুন"}
+          <RefreshIcon
+            size={15}
+            className={regenerating ? "animate-spin" : undefined}
+          />
+          {regenerating
+            ? "AI সিনারিও তৈরি হচ্ছে…"
+            : "নতুন সিনারিও জেনারেট করুন"}
         </button>
 
         <Link
