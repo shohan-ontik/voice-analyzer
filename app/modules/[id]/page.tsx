@@ -5,7 +5,7 @@ import { ChapterRow } from "../../components/modules/ChapterRow";
 import { MODULE_STATUS_META } from "../../components/modules/ModuleCard";
 import { ArrowLeftIcon, AwardIcon, BookIcon } from "../../components/icons";
 import { ApiClientError, getModule } from "../../lib/apiClient";
-import { getChapterProgress, getExamStatus, getModuleStatus } from "../../lib/moduleProgress";
+import { getChapterProgress, getChapterStatus, getExamStatus, getModuleStatus } from "../../lib/moduleProgress";
 import { getSessionToken } from "../../lib/session";
 import type { TrainingModule } from "../../lib/types";
 
@@ -101,8 +101,13 @@ export default async function ModuleDetailPage({ params }: { params: Promise<{ i
         </div>
 
         <div className="flex flex-col gap-4">
-          {trainingModule.chapters.map((chapter) => (
-            <ChapterRow key={chapter.id} moduleId={trainingModule.slug} chapter={chapter} />
+          {trainingModule.chapters.map((chapter, index) => (
+            <ChapterRow
+              key={chapter.id}
+              moduleId={trainingModule.slug}
+              chapter={chapter}
+              status={getChapterStatus(trainingModule, index)}
+            />
           ))}
 
           <ModuleExamBanner exam={trainingModule.exam} status={examStatus} moduleSlug={trainingModule.slug} />

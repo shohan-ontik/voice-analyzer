@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getMaterialStatus } from "../lib/moduleProgress";
 import type { LearningMaterial } from "../lib/types";
 import { MaterialRow } from "./MaterialRow";
 import { MaterialViewerModal } from "./MaterialViewerModal";
@@ -22,14 +23,17 @@ export function MaterialsSection({
   return (
     <>
       <div className="flex flex-col gap-3">
-        {materials.map((material) => (
-          <MaterialRow
-            key={material.id}
-            material={material}
-            completed={material.completedAt !== null}
-            onOpen={() => setOpenId(material.id)}
-          />
-        ))}
+        {materials.map((material, index) => {
+          const status = getMaterialStatus(materials, index);
+          return (
+            <MaterialRow
+              key={material.id}
+              material={material}
+              status={status}
+              onOpen={() => status !== "locked" && setOpenId(material.id)}
+            />
+          );
+        })}
       </div>
 
       {openMaterial && (

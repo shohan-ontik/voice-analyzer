@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ReactNode } from "react";
 import { SearchIcon } from "../icons";
-import type { EvaluationReport, ReportKind } from "../../lib/reportsData";
+import { authFetch } from "../../lib/clientFetch";
+import { HISTORY_PAGE_SIZE, toEvaluationReport, type EvaluationReport, type ReportKind } from "../../lib/reportsData";
+import type { PracticeSessionRecord } from "../../lib/types";
+import { ReportRow } from "./ReportRow";
 
 type FilterKey = "all" | ReportKind;
 
@@ -13,11 +15,31 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "exam", label: "এক্সাম" },
 ];
 
-export function HistoryFilters({ entries }: { entries: { report: EvaluationReport; node: ReactNode }[] }) {
+export function HistoryFilters({ initialReports, total }: { initialReports: EvaluationReport[]; total: number }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [reports, setReports] = useState(initialReports);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const filteredEntries = entries.filter(({ report: r }) => {
+  const hasMore = reports.length < total;
+
+  async function loadMore() {
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await authFetch(`/api/sessions?page=${nextPage}&pageSize=${HISTORY_PAGE_SIZE}`);
+      if (res.ok) {
+        const body = (await res.json()) as { items: PracticeSessionRecord[] };
+        setReports((prev) => [...prev, ...body.items.map(toEvaluationReport)]);
+        setPage(nextPage);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  const filteredEntries = reports.filter((r) => {
     const matchesFilter = filter === "all" || r.kind === filter;
     const matchesQuery = query.trim() === "" || r.title.toLowerCase().includes(query.trim().toLowerCase());
     return matchesFilter && matchesQuery;
@@ -70,7 +92,24 @@ export function HistoryFilters({ entries }: { entries: { report: EvaluationRepor
         {filteredEntries.length === 0 ? (
           <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো রিপোর্ট খুঁজে পাওয়া যায়নি।</div>
         ) : (
-          <div className="flex flex-col gap-4">{filteredEntries.map(({ node }) => node)}</div>
+          <div className="flex flex-col gap-4">
+            {filteredEntries.map((report) => (
+              <ReportRow key={report.id} report={report} />
+            ))}
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="cursor-pointer px-5 py-2.5 rounded-xl border border-border bg-background-elevated text-[13px] font-semibold text-foreground hover:border-navy/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingMore ? "লোড হচ্ছে..." : "আরও দেখুন"}
+            </button>
+          </div>
         )}
       </div>
     </>

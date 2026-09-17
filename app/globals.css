@@ -21,6 +21,9 @@
   --warning-soft: oklch(95% 0.045 85);
   --success: oklch(58% 0.13 152);
   --success-soft: oklch(93% 0.035 152);
+  --error: oklch(58% 0.19 25);
+  --error-ink: oklch(99% 0.01 25);
+  --error-soft: oklch(94% 0.04 25);
 }
 
 body {

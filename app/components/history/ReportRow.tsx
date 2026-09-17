@@ -9,6 +9,10 @@ const KIND_META: Record<ReportKind, { label: string; badgeClass: string }> = {
 
 export function ReportRow({ report }: { report: EvaluationReport }) {
   const meta = KIND_META[report.kind];
+  const scoreBadgeClass = report.passed
+    ? "border-success bg-success-soft text-success"
+    : "border-error bg-error-soft text-error";
+  const scoreTextClass = report.passed ? "text-success" : "text-error";
 
   return (
     <Link
@@ -16,9 +20,9 @@ export function ReportRow({ report }: { report: EvaluationReport }) {
       className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 cursor-pointer hover:border-navy/30 transition-colors"
     >
       <div className="flex items-center gap-4 sm:gap-5 flex-1 min-w-0">
-        <div className="w-14 h-14 rounded-2xl border-2 border-success bg-success-soft flex flex-col items-center justify-center shrink-0">
-          <span className="font-display font-bold text-lg text-success leading-none">{report.score}</span>
-          <span className="text-[10px] text-success leading-none mt-0.5">/100</span>
+        <div className={`w-14 h-14 rounded-2xl border-2 flex flex-col items-center justify-center shrink-0 ${scoreBadgeClass}`}>
+          <span className={`font-display font-bold text-lg leading-none ${scoreTextClass}`}>{report.score}</span>
+          <span className={`text-[10px] leading-none mt-0.5 ${scoreTextClass}`}>/100</span>
         </div>
 
         <div className="flex-1 min-w-0">

@@ -41,6 +41,11 @@ export default {
           DEFAULT: "var(--success)",
           soft: "var(--success-soft)",
         },
+        error: {
+          DEFAULT: "var(--error)",
+          ink: "var(--error-ink)",
+          soft: "var(--error-soft)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-noto-serif-bengali)", "ui-serif", "system-ui", "serif"],

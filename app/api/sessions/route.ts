@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { apiErrorResponse, createPracticeSession, listOwnPracticeSessions } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
@@ -33,6 +34,9 @@ export async function POST(request: Request) {
     topicName?: string;
     chapterId?: string | null;
     examId?: string | null;
+    // Not forwarded to the backend — used only to know which module page to
+    // revalidate below when this session is a graded exam attempt.
+    moduleSlug?: string | null;
     overall?: number;
     verdict?: string;
     categories?: AnalysisCategory[];
@@ -62,6 +66,14 @@ export async function POST(request: Request) {
       categories: body.categories,
       transcript: body.transcript,
     });
+
+    // An exam attempt can be the one that pushes the module to "completed"
+    // (all chapters done + a passing exam score) — revalidate its page so a
+    // cached Router Cache entry doesn't keep showing it as in-progress.
+    if (body.examId && body.moduleSlug) {
+      revalidatePath(`/modules/${body.moduleSlug}`);
+    }
+
     return NextResponse.json(saved, { status: 201 });
   } catch (err) {
     return apiErrorResponse(err, "Failed to save this session.");

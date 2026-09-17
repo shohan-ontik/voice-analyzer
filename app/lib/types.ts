@@ -49,6 +49,11 @@ export type PracticeSessionRecord = {
   // pitch practice.
   chapterId: string | null;
   examId: string | null;
+  type: "exam" | "pitch_practice";
+  // Snapshotted at creation: the exam's Exam.passMark for a graded attempt,
+  // or the flat pitch-practice pass mark otherwise. Compare overallScore
+  // against this (not a frontend-guessed threshold) to know if it passed.
+  passMark: number;
   overallScore: number;
   verdict: string;
   categories: { name: string; score: number; feedback: string; tips: string[] }[];

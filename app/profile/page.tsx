@@ -6,7 +6,7 @@ import { ArrowRightIcon, BuildingIcon, CalendarIcon, MailIcon } from "../compone
 import { authFetch } from "../lib/clientFetch";
 import { getChapterProgress } from "../lib/moduleProgress";
 import { profileData } from "../lib/profileData";
-import { type EvaluationReport, type ReportKind } from "../lib/reportsData";
+import { toEvaluationReport, type EvaluationReport, type ReportKind } from "../lib/reportsData";
 import type { AppUser, PracticeSessionRecord, StatsSummary } from "../lib/types";
 import { useModules } from "../lib/useModules";
 
@@ -20,17 +20,6 @@ function formatDate(iso: string) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}/${mm}/${d.getFullYear()}`;
-}
-
-function toReport(session: PracticeSessionRecord): EvaluationReport {
-  return {
-    id: session.id,
-    score: session.overallScore,
-    kind: session.examId ? "exam" : "practice",
-    date: formatDate(session.createdAt),
-    title: session.topicName,
-    feedback: session.verdict,
-  };
 }
 
 export default function ProfilePage() {
@@ -59,7 +48,7 @@ export default function ProfilePage() {
     authFetch("/api/sessions?pageSize=3")
       .then(async (res) => {
         const body = await res.json();
-        if (res.ok && !cancelled) setRecentReports((body.items as PracticeSessionRecord[]).map(toReport));
+        if (res.ok && !cancelled) setRecentReports((body.items as PracticeSessionRecord[]).map(toEvaluationReport));
       })
       .catch(() => {});
 
@@ -189,7 +178,11 @@ export default function ProfilePage() {
                 key={report.id}
                 className="flex items-center gap-4 rounded-xl bg-background border border-border p-4"
               >
-                <div className="w-11 h-11 rounded-xl bg-success-soft text-success flex items-center justify-center font-display font-bold text-[15px] shrink-0">
+                <div
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center font-display font-bold text-[15px] shrink-0 ${
+                    report.passed ? "bg-success-soft text-success" : "bg-error-soft text-error"
+                  }`}
+                >
                   {report.score}
                 </div>
                 <div className="flex-1 min-w-0">

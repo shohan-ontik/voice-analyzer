@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ChapterStatus } from "../../lib/moduleProgress";
 import type { ModuleChapter } from "../../lib/types";
 import {
   CheckCircleIcon,
@@ -16,35 +17,39 @@ const STATUS_META = {
     Icon: CheckCircleIcon,
     cta: "অধ্যায় পর্যালোচনা",
   },
-  not_started: {
+  unlocked: {
     label: "স্টার্ট হয়নি",
     badgeClass: "bg-border text-foreground-muted",
     iconWrapClass: "bg-border text-foreground-muted",
     Icon: LockIcon,
     cta: "অধ্যায় শুরু করুন",
   },
+  locked: {
+    label: "লকড",
+    badgeClass: "bg-border text-foreground-muted",
+    iconWrapClass: "bg-border text-foreground-muted",
+    Icon: LockIcon,
+    cta: "আগের অধ্যায় সম্পন্ন করুন",
+  },
 } as const;
 
 export function ChapterRow({
   moduleId,
   chapter,
+  status,
 }: {
   moduleId: string;
   chapter: ModuleChapter;
+  status: ChapterStatus;
 }) {
-  const meta =
-    chapter.completedAt !== null
-      ? STATUS_META.completed
-      : STATUS_META.not_started;
+  const meta = STATUS_META[status];
+  const locked = status === "locked";
   const videoCount = chapter.materials.filter((m) => m.type === "video").length;
   const guideCount = chapter.materials.filter((m) => m.type === "pdf").length;
   const audioCount = chapter.materials.filter((m) => m.type === "audio").length;
 
-  return (
-    <Link
-      href={`/modules/${moduleId}/chapters/${chapter.slug}`}
-      className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col sm:flex-row sm:items-start gap-4 cursor-pointer transition-all duration-200 hover:border-navy hover:shadow-[0_10px_24px_-10px_color-mix(in_oklch,var(--navy)_45%,transparent)]"
-    >
+  const content = (
+    <>
       <div className="flex items-start gap-4 flex-1 min-w-0">
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${meta.iconWrapClass}`}
@@ -82,9 +87,33 @@ export function ChapterRow({
         </div>
       </div>
 
-      <span className="px-4 py-2.5 rounded-lg border-[1.5px] border-border text-foreground font-display font-semibold text-[13px] shrink-0 text-center w-full sm:w-auto">
+      <span
+        className={`px-4 py-2.5 rounded-lg border-[1.5px] font-display font-semibold text-[13px] shrink-0 text-center w-full sm:w-auto ${
+          locked ? "border-border text-foreground-muted" : "border-border text-foreground"
+        }`}
+      >
         {meta.cta}
       </span>
+    </>
+  );
+
+  if (locked) {
+    return (
+      <div
+        aria-disabled
+        className="rounded-2xl border border-border bg-background-elevated/60 p-5 flex flex-col sm:flex-row sm:items-start gap-4 cursor-not-allowed opacity-70"
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/modules/${moduleId}/chapters/${chapter.slug}`}
+      className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col sm:flex-row sm:items-start gap-4 cursor-pointer transition-all duration-200 hover:border-navy hover:shadow-[0_10px_24px_-10px_color-mix(in_oklch,var(--navy)_45%,transparent)]"
+    >
+      {content}
     </Link>
   );
 }

@@ -7,6 +7,7 @@ import { RoleplayCtaBanner } from "../../../../components/RoleplayCtaBanner";
 import { ArrowLeftIcon, BookIcon, SparkleIcon } from "../../../../components/icons";
 import { chapterHeadline } from "../../../../lib/chapterHeadline";
 import { authFetch } from "../../../../lib/clientFetch";
+import { getChapterStatus } from "../../../../lib/moduleProgress";
 import { useModule } from "../../../../lib/useModules";
 
 export default function ChapterDetailPage() {
@@ -35,6 +36,19 @@ export default function ChapterDetailPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
         <p className="text-[13.5px] text-foreground-muted">অধ্যায় খুঁজে পাওয়া যায়নি।</p>
+        <Link href={`/modules/${trainingModule.slug}`} className="text-[13px] font-semibold text-navy">
+          মডিউলে ফিরে যান
+        </Link>
+      </div>
+    );
+  }
+
+  const chapterStatus = getChapterStatus(trainingModule, chapterIndex);
+
+  if (chapterStatus === "locked") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">এই অধ্যায় শুরু করতে আগের অধ্যায়টি সম্পন্ন করুন।</p>
         <Link href={`/modules/${trainingModule.slug}`} className="text-[13px] font-semibold text-navy">
           মডিউলে ফিরে যান
         </Link>

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon } from "../icons";
+import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon, XIcon } from "../icons";
 import type { ExamStatus } from "../../lib/moduleProgress";
 import type { ModuleExam } from "../../lib/types";
 
 const STATUS_META: Record<ExamStatus, { label: string; badgeClass: string; Icon: typeof CheckCircleIcon }> = {
   passed: { label: "পাসড", badgeClass: "bg-success text-white", Icon: CheckCircleIcon },
+  failed: { label: "ব্যর্থ", badgeClass: "bg-error text-error-ink", Icon: XIcon },
   ready: { label: "এক্সামের জন্য রেডি", badgeClass: "bg-warning-soft text-warning-ink", Icon: ClockIcon },
   locked: { label: "লকড", badgeClass: "bg-border text-foreground-muted", Icon: LockIcon },
 };
@@ -19,7 +20,8 @@ export function ExamCard({
   moduleSlug: string;
 }) {
   const meta = STATUS_META[status];
-  const badgeLabel = status === "passed" && exam.bestScore !== null ? `${meta.label} (${exam.bestScore}%)` : meta.label;
+  const hasResult = status === "passed" || status === "failed";
+  const badgeLabel = hasResult && exam.bestScore !== null ? `${meta.label} (${exam.bestScore}%)` : meta.label;
 
   return (
     <div className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-3">
@@ -69,6 +71,16 @@ export function ExamCard({
           >
             <SparkleIcon size={13} />
             এক্সাম শুরু করুন
+          </Link>
+        )}
+
+        {status === "failed" && (
+          <Link
+            href={`/modules/${moduleSlug}/exam`}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-error text-error-ink font-display font-semibold text-[13px] cursor-pointer"
+          >
+            <SparkleIcon size={13} />
+            আবার চেষ্টা করুন
           </Link>
         )}
 

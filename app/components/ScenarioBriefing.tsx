@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { PitchScenario } from "../lib/types";
-import {
-  CheckCircleIcon,
-  GlobeIcon,
-  RefreshIcon,
-  SparkleIcon,
-  SpeakerIcon,
-  VideoIcon,
-} from "./icons";
+import { CheckCircleIcon, RefreshIcon, SparkleIcon, VideoIcon } from "./icons";
 
 const LANGUAGES = [
   { key: "bn", label: "বাংলা" },
@@ -49,29 +42,6 @@ export function ScenarioBriefing({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl bg-background border border-border px-4 py-3">
-        <span className="flex items-center gap-2 text-[13px] font-semibold text-foreground-muted">
-          <GlobeIcon size={15} />
-          সিনারিওর ল্যাঙ্গুয়েজ:
-        </span>
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-border/50">
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.key}
-              type="button"
-              onClick={() => setLanguage(l.key)}
-              className={`px-3.5 py-1.5 rounded-md text-[12.5px] font-semibold transition-colors cursor-pointer ${
-                language === l.key
-                  ? "bg-navy text-navy-ink"
-                  : "text-foreground-muted"
-              }`}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="rounded-xl border border-border p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
@@ -87,13 +57,6 @@ export function ScenarioBriefing({
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border-[1.5px] border-navy/25 text-navy font-display font-semibold text-[12.5px] shrink-0 cursor-pointer"
-          >
-            <SpeakerIcon size={14} />
-            ক্লায়েন্টের ভয়েস শুনুন
-          </button>
         </div>
 
         <div className="rounded-lg bg-navy-soft p-3.5">
