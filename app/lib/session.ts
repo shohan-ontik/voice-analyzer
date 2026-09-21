@@ -2,20 +2,19 @@ import "server-only";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME } from "./constants";
 
-// Matches the backend access-token expiry (see voice-analyzer-api's
+// Matches the backend access-token expiries (see voice-analyzer-server's
 // services/auth.service.ts) so the cookie never outlives the JWT.
 const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
+const SESSION_REMEMBER_ME_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
-export async function setSessionCookie(token: string, rememberMe: boolean = true) {
+export async function setSessionCookie(token: string, rememberMe: boolean = false) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    // Without "remember me" the cookie is session-only (cleared when the
-    // browser closes) instead of persisting for the full JWT lifetime.
-    ...(rememberMe ? { maxAge: SESSION_MAX_AGE_SECONDS } : {}),
+    maxAge: rememberMe ? SESSION_REMEMBER_ME_MAX_AGE_SECONDS : SESSION_MAX_AGE_SECONDS,
   });
 }
 

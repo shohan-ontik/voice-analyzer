@@ -14,8 +14,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { accessToken, user, isFirstLogin } = await loginRequest(identifier, password);
-    await setSessionCookie(accessToken, rememberMe ?? true);
+    const { accessToken, user, isFirstLogin } = await loginRequest(identifier, password, rememberMe === true);
+    await setSessionCookie(accessToken, rememberMe === true);
     return NextResponse.json({ user, isFirstLogin });
   } catch (err) {
     if (err instanceof ApiClientError) {
