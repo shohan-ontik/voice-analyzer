@@ -112,7 +112,7 @@ export default function ChangePasswordPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="mt-1.5 py-3 rounded-xl bg-accent text-accent-ink font-display font-semibold text-sm disabled:opacity-60"
+              className="mt-1.5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-sm disabled:opacity-60"
             >
               {submitting ? "Saving…" : "Save new password"}
             </button>

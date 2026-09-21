@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import {
   AwardIcon,
   CalendarIcon,
@@ -13,6 +14,7 @@ import {
   SparkleIcon,
 } from "./components/icons";
 import { ModuleExamBanner } from "./components/modules/ModuleExamBanner";
+import { authFetch } from "./lib/clientFetch";
 import { dashboardUser, upcomingExam } from "./lib/dashboardData";
 import {
   getChapterProgress,
@@ -21,6 +23,7 @@ import {
   getModuleStatus,
   pickContinueModule,
 } from "./lib/moduleProgress";
+import type { AppUser } from "./lib/types";
 import { useModules } from "./lib/useModules";
 
 const CONTINUE_STATUS_BADGE: Record<"in_progress" | "not_started", string> = {
@@ -29,8 +32,34 @@ const CONTINUE_STATUS_BADGE: Record<"in_progress" | "not_started", string> = {
 };
 
 export default function Home() {
+  return (
+    <Suspense fallback={<div className="flex-1 bg-background" />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { modules, error: modulesError } = useModules();
+
+  const [showWelcome] = useState(() => searchParams.get("firstLogin") === "1");
+  const [user, setUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    authFetch("/api/auth/me")
+      .then(async (res) => {
+        const body = await res.json();
+        if (res.ok) setUser(body);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!showWelcome) return;
+    router.replace("/");
+  }, [showWelcome, router]);
 
   const continueModule = modules ? pickContinueModule(modules) : null;
   const currentChapter = continueModule
@@ -44,12 +73,21 @@ export default function Home() {
       ? Math.round((continueProgress.completed / continueProgress.total) * 100)
       : 0;
 
+  // if (!showWelcome) {
+  //   return (
+  //     <WelcomeScreen
+  //       name={user?.name}
+  //       mustChangePassword={user?.mustChangePassword}
+  //     />
+  //   );
+  // }
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="mx-4 mt-4 rounded-2xl border border-border bg-background-elevated p-5 lg:mx-0 lg:mt-0 lg:rounded-none lg:border-0 lg:bg-transparent lg:px-10 lg:pt-10 lg:pb-8 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6">
         <div>
           <h1 className="font-display font-bold text-[22px] lg:text-[30px] text-foreground mb-1.5">
-            ওয়েলকাম, {dashboardUser.firstName}! 👋
+            ওয়েলকাম, {user ? user.name.trim().split(/\s+/)[0] : "…"}! 👋
           </h1>
           <p className="text-[13.5px] lg:text-[14.5px] text-foreground-muted">
             {dashboardUser.role} • {dashboardUser.team}

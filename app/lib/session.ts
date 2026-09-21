@@ -6,14 +6,16 @@ import { SESSION_COOKIE_NAME } from "./constants";
 // services/auth.service.ts) so the cookie never outlives the JWT.
 const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
-export async function setSessionCookie(token: string) {
+export async function setSessionCookie(token: string, rememberMe: boolean = true) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    // Without "remember me" the cookie is session-only (cleared when the
+    // browser closes) instead of persisting for the full JWT lifetime.
+    ...(rememberMe ? { maxAge: SESSION_MAX_AGE_SECONDS } : {}),
   });
 }
 

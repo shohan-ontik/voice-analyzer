@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRightIcon, BuildingIcon, CalendarIcon, MailIcon } from "../components/icons";
+import { ArrowRightIcon, BuildingIcon, CalendarIcon, PhoneIcon } from "../components/icons";
 import { authFetch } from "../lib/clientFetch";
 import { getChapterProgress } from "../lib/moduleProgress";
 import { profileData } from "../lib/profileData";
@@ -102,8 +102,8 @@ export default function ProfilePage() {
                 </span>
                 <span aria-hidden>•</span>
                 <span className="flex items-center gap-1.5">
-                  <MailIcon size={14} />
-                  {user?.email ?? "…"}
+                  <PhoneIcon size={14} />
+                  {user?.phone ?? "…"}
                 </span>
                 <span aria-hidden>•</span>
                 <span className="flex items-center gap-1.5">

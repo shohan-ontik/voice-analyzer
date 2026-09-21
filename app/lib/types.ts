@@ -1,12 +1,15 @@
 // Mirrors voice-analyzer-api's User#toSafeJSON().
 export type AppUser = {
   id: string;
-  email: string;
+  username: string;
+  phone: string | null;
+  email: string | null;
   name: string;
   role: "user" | "admin";
   isBanned: boolean;
   mustChangePassword: boolean;
   lastLoginAt: string | null;
+  firstLoginAt: string | null;
   createdAt: string;
 };
 
@@ -32,7 +35,7 @@ export type StatsSummary = {
   // Modules where every chapter is completed and the exam is passed.
   completedModules: number;
   passedExams: number;
-  // Pitches (non-exam sessions) left this calendar month, out of a cap of 18.
+  // Pitches (non-exam sessions) left this calendar month, out of a cap of 125.
   pitchesRemainingThisMonth: number;
   // Total pitches (non-exam sessions) the caller has ever participated in.
   totalPitchesEvaluated: number;

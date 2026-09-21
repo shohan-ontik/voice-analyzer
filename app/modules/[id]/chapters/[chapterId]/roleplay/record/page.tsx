@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  XIcon,
-} from "../../../../../../components/icons";
+import { ArrowLeftIcon, XIcon } from "../../../../../../components/icons";
 import type { AnalysisResult } from "../../../../../../lib/analysis";
 import { chapterHeadline } from "../../../../../../lib/chapterHeadline";
 import { authFetch } from "../../../../../../lib/clientFetch";
@@ -422,19 +418,9 @@ export default function ChapterRoleplayRecordPage() {
           </div>
 
           <div className="bg-background-elevated rounded-t-[24px] lg:rounded-t-none lg:w-[320px] lg:border-l lg:border-border px-5 pt-4 pb-5 lg:p-6 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => setReferenceExpanded((e) => !e)}
-              className="flex items-center justify-between cursor-pointer"
-            >
-              <span className="font-display font-bold text-[13.5px] text-foreground">
-                সিনারিও রেফারেন্স
-              </span>
-              <ChevronDownIcon
-                size={16}
-                className={`text-foreground-muted transition-transform ${referenceExpanded ? "" : "rotate-180"}`}
-              />
-            </button>
+            <span className="font-display font-bold text-[13.5px] text-foreground">
+              সিনারিও রেফারেন্স
+            </span>
             {referenceExpanded && (
               <p className="text-[13px] text-foreground-muted leading-relaxed italic">
                 &ldquo;{scenario.objection}&rdquo;

@@ -63,10 +63,10 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
-export function loginRequest(email: string, password: string) {
-  return request<{ accessToken: string; user: AppUser }>("/auth/login", {
+export function loginRequest(identifier: string, password: string) {
+  return request<{ accessToken: string; user: AppUser; isFirstLogin: boolean }>("/auth/login", {
     method: "POST",
-    body: { email, password },
+    body: { identifier, password },
   });
 }
 
