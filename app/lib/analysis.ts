@@ -33,7 +33,7 @@ export function buildAnalysisSchema(categoryNames: string[]) {
       },
       verdict: {
         type: "string",
-        description: "One short, encouraging sentence summarizing the pitch quality.",
+        description: "One short, encouraging sentence summarizing the pitch quality, in Bangla.",
       },
       categories: {
         type: "array",
@@ -46,11 +46,11 @@ export function buildAnalysisSchema(categoryNames: string[]) {
               enum: categoryNames,
             },
             score: { type: "number", description: "0-100" },
-            feedback: { type: "string", description: "One specific sentence of feedback." },
+            feedback: { type: "string", description: "One specific sentence of feedback, in Bangla." },
             tips: {
               type: "array",
               items: { type: "string" },
-              description: "Exactly two short, actionable tips referencing what was actually said.",
+              description: "Exactly two short, actionable tips referencing what was actually said, in Bangla.",
             },
           },
           required: ["name", "score", "feedback", "tips"],
@@ -82,7 +82,7 @@ export function buildAnalysisSchema(categoryNames: string[]) {
 export function buildAnalysisPrompt(referenceFacts: string, scenarioLabel: string, categoryNames: string[]) {
   const categoryList = categoryNames.map((name) => `   - "${name}"`).join("\n");
 
-  return `You are an expert sales-pitch coach evaluating a practice recording for the "${scenarioLabel}" pitch.
+  return `You are an expert sales-pitch coach evaluating a practice recording for the "${scenarioLabel}" pitch. Write every piece of feedback (verdict, category feedback, tips) entirely in Bangla, regardless of what language the speaker used in the recording.
 
 Below are the key reference facts the speaker should convey about "${scenarioLabel}". This is NOT a script to recite verbatim — the speaker is expected to pitch in their own words, in their own order and structure:
 
@@ -97,10 +97,10 @@ Watch or listen to the attached recording and:
    - "pronunciation" for words that were mispronounced, slurred, or unclear
    - "plain" for everything else
 
-2. Score each of the following categories from 0-100, each with one sentence of specific feedback and exactly two short, actionable tips that reference what was actually said (not generic advice). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
+2. Score each of the following categories from 0-100, each with one sentence of specific feedback (in Bangla) and exactly two short, actionable tips (in Bangla) that reference what was actually said (not generic advice). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
 ${categoryList}
 
-3. Give an overall score (the rounded average of the category scores) and one encouraging, specific one-sentence verdict.
+3. Give an overall score (the rounded average of the category scores) and one encouraging, specific one-sentence verdict, in Bangla.
 
-Be honest and specific. If the recording is silent, too short to evaluate, or does not contain a spoken pitch, still return the full JSON shape: score every category low, explain why in the feedback, and set the transcript to a single segment describing what you actually heard.`;
+Be honest and specific. If the recording is silent, too short to evaluate, or does not contain a spoken pitch, still return the full JSON shape: score every category low, explain why in the feedback (in Bangla), and set the transcript to a single segment describing what you actually heard.`;
 }
