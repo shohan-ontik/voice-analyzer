@@ -34,6 +34,7 @@ type Status = "requesting" | "countdown" | "recording" | "stopped";
 
 const COUNTDOWN_SECONDS = 5;
 const MAX_PITCH_SECONDS = 120;
+const MAX_RECORDING_ATTEMPTS = 3;
 
 function pickAudioMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
@@ -63,6 +64,7 @@ export default function ChapterRoleplayRecordPage() {
   const [referenceExpanded, setReferenceExpanded] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [recordingAttempts, setRecordingAttempts] = useState(0);
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -96,6 +98,7 @@ export default function ChapterRoleplayRecordPage() {
     recorder.start();
     setSeconds(0);
     setStatus("recording");
+    setRecordingAttempts((n) => n + 1);
     if (timerRef.current) clearInterval(timerRef.current);
     let elapsed = 0;
     timerRef.current = setInterval(() => {
@@ -392,7 +395,10 @@ export default function ChapterRoleplayRecordPage() {
                       <button
                         type="button"
                         onClick={retake}
-                        disabled={submitting}
+                        disabled={
+                          submitting ||
+                          recordingAttempts >= MAX_RECORDING_ATTEMPTS
+                        }
                         className="px-4 py-2.5 rounded-lg border-[1.5px] border-navy-ink/30 text-navy-ink font-display font-semibold text-[13px] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         আবার রেকর্ড করুন
