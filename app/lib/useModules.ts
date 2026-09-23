@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { authFetch } from "./clientFetch";
-import type { TrainingModule } from "./types";
+import type { TrainingModule, TrainingModuleSummary } from "./types";
 
 export function useModules() {
-  const [modules, setModules] = useState<TrainingModule[] | null>(null);
+  const [modules, setModules] = useState<TrainingModuleSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export function useModules() {
       .then(async (res) => {
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error?.message ?? "Failed to load modules.");
-        if (!cancelled) setModules(body.items as TrainingModule[]);
+        if (!cancelled) setModules(body.items as TrainingModuleSummary[]);
       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load modules.");

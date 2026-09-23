@@ -13,16 +13,10 @@ import {
   PlayIcon,
   SparkleIcon,
 } from "./components/icons";
-import { ModuleExamBanner } from "./components/modules/ModuleExamBanner";
+import { ProgressBar } from "./components/shared/ProgressBar";
 import { authFetch } from "./lib/clientFetch";
 import { dashboardUser, upcomingExam } from "./lib/dashboardData";
-import {
-  getChapterProgress,
-  getCurrentChapter,
-  getExamStatus,
-  getModuleStatus,
-  pickContinueModule,
-} from "./lib/moduleProgress";
+import { getModuleStatus, pickContinueModule } from "./lib/moduleProgress";
 import type { AppUser } from "./lib/types";
 import { useModules } from "./lib/useModules";
 
@@ -62,16 +56,10 @@ function HomeContent() {
   }, [showWelcome, router]);
 
   const continueModule = modules ? pickContinueModule(modules) : null;
-  const currentChapter = continueModule
-    ? getCurrentChapter(continueModule)
-    : null;
-  const continueProgress = continueModule
-    ? getChapterProgress(continueModule)
-    : null;
-  const continueProgressPercent =
-    continueProgress && continueProgress.total > 0
-      ? Math.round((continueProgress.completed / continueProgress.total) * 100)
-      : 0;
+  const continueChaptersRemaining = continueModule
+    ? continueModule.chapterCount - continueModule.completedChapterCount
+    : 0;
+  const continueProgressPercent = continueModule?.progressPercent ?? 0;
 
   // if (!showWelcome) {
   //   return (
@@ -96,8 +84,8 @@ function HomeContent() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push("/record")}
-            className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-navy text-navy-ink font-display font-semibold text-sm hover:-translate-y-px transition-transform"
+            onClick={() => router.push(`/modules/${continueModule?.slug}`)}
+            className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-navy text-navy-ink font-display font-semibold text-sm hover:-translate-y-px transition-transform cursor-pointer"
           >
             <MicIcon size={16} />
             পিচ প্র্যাকটিস করুন
@@ -105,7 +93,7 @@ function HomeContent() {
           </button>
           <button
             type="button"
-            className="hidden lg:inline-flex items-center gap-2 px-5 py-3.5 rounded-xl border-[1.5px] border-navy/20 bg-navy-soft text-navy font-display font-semibold text-sm"
+            className="hidden lg:inline-flex items-center gap-2 px-5 py-3.5 rounded-xl border-[1.5px] border-navy/20 bg-navy-soft text-navy font-display font-semibold text-sm cursor-pointer"
           >
             <DotIcon size={9} />
             সক্রিয় প্রশিক্ষণ ট্র্যাক
@@ -170,35 +158,20 @@ function HomeContent() {
                     {continueProgressPercent}% সম্পন্ন
                   </span>
                   <span className="text-foreground-muted">
-                    {(continueProgress?.total ?? 0) -
-                      (continueProgress?.completed ?? 0)}
-                    টি অধ্যায় বাকি
+                    {continueChaptersRemaining}টি অধ্যায় বাকি
                   </span>
                 </div>
-                <div className="h-1.5 rounded-full bg-border overflow-hidden mb-5">
-                  <div
-                    className="h-full rounded-full bg-navy"
-                    style={{ width: `${continueProgressPercent}%` }}
-                  />
-                </div>
+                <ProgressBar percent={continueProgressPercent} size="sm" className="mb-5" />
 
-                {currentChapter ? (
-                  <div className="flex justify-end">
-                    <Link
-                      href={`/modules/${continueModule.slug}/chapters/${currentChapter.slug}`}
-                      className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
-                    >
-                      রিজিউম করুন
-                      <PlayIcon size={12} />
-                    </Link>
-                  </div>
-                ) : (
-                  <ModuleExamBanner
-                    exam={continueModule.exam}
-                    status={getExamStatus(continueModule)}
-                    moduleSlug={continueModule.slug}
-                  />
-                )}
+                <div className="flex justify-end">
+                  <Link
+                    href={`/modules/${continueModule.slug}`}
+                    className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
+                  >
+                    {continueChaptersRemaining > 0 ? "রিজিউম করুন" : "পরীক্ষা দিন"}
+                    <PlayIcon size={12} />
+                  </Link>
+                </div>
               </div>
             </>
           )}

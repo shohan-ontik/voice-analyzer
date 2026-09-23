@@ -62,6 +62,10 @@ export type PracticeSessionRecord = {
   categories: { name: string; score: number; feedback: string; tips: string[] }[];
   transcript: { text: string; kind: "plain" | "filler" | "pronunciation" }[];
   createdAt: string;
+  // Only populated by GET /practice-sessions/:id — resolves chapterId/examId
+  // into the slugs needed to link back to the right roleplay/exam page.
+  moduleSlug?: string | null;
+  chapterSlug?: string | null;
 };
 
 export type ApiErrorBody = {
@@ -120,6 +124,9 @@ export type ModuleExam = {
   passed: boolean;
 };
 
+// `progressPercent` is derived server-side: chapters make up 80% (split
+// evenly across chapters, then across each chapter's materials) and the
+// final exam makes up the remaining 20%, earned once it's passed.
 export type TrainingModule = {
   id: string;
   slug: string;
@@ -129,4 +136,32 @@ export type TrainingModule = {
   order: number;
   chapters: ModuleChapter[];
   exam: ModuleExam;
+  chapterCount: number;
+  completedChapterCount: number;
+  progressPercent: number;
+};
+
+// Mirrors GET /modules's item shape — the list endpoint drops the full
+// chapters/exam payload (fetched separately per-module, via TrainingModule,
+// once a trainee opens one) and sends aggregate chapter counts instead.
+export type TrainingModuleSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string | null;
+  order: number;
+  chapterCount: number;
+  completedChapterCount: number;
+  progressPercent: number;
+};
+
+// Mirrors GET /modules/exams's item shape — one entry per module that has an
+// exam, with its unlock/pass status pre-computed server-side (mirrors
+// getExamStatus in app/lib/moduleProgress.ts, which the detail endpoint's
+// full TrainingModule still needs to compute this locally).
+export type ExamListItem = {
+  moduleSlug: string;
+  exam: ModuleExam;
+  status: "passed" | "failed" | "ready" | "locked";
 };

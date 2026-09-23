@@ -1,6 +1,15 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import type { AppUser, ApiErrorBody, PracticeSessionRecord, StatsSummary, Topic, TrainingModule } from "./types";
+import type {
+  AppUser,
+  ApiErrorBody,
+  ExamListItem,
+  PracticeSessionRecord,
+  StatsSummary,
+  Topic,
+  TrainingModule,
+  TrainingModuleSummary,
+} from "./types";
 import type { AnalysisCategory, TranscriptSegment } from "./analysis";
 import { clearSessionCookie } from "./session";
 
@@ -121,7 +130,11 @@ export function changePassword(token: string, input: { currentPassword: string; 
 }
 
 export function listModules(token: string) {
-  return request<{ items: TrainingModule[] }>("/modules", { token });
+  return request<{ items: TrainingModuleSummary[] }>("/modules", { token });
+}
+
+export function listExams(token: string) {
+  return request<{ items: ExamListItem[] }>("/modules/exams", { token });
 }
 
 export function getModule(token: string, slug: string) {

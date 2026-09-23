@@ -4,9 +4,9 @@ import { AnalysisBreakdown } from "../../components/AnalysisBreakdown";
 import { BackHeader } from "../../components/BackHeader";
 import { SparkleIcon } from "../../components/icons";
 import { ScoreCircle } from "../../components/history/ScoreCircle";
-import { ApiClientError, getOwnPracticeSession, listModules } from "../../lib/apiClient";
+import { ApiClientError, getOwnPracticeSession } from "../../lib/apiClient";
 import { getSessionToken } from "../../lib/session";
-import type { PracticeSessionRecord, TrainingModule } from "../../lib/types";
+import type { PracticeSessionRecord } from "../../lib/types";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -14,18 +14,16 @@ function formatDate(value: string) {
 
 // Where "Practice Again" should send the user: back to the specific chapter's
 // roleplay briefing or the module exam briefing this session came from, or
-// the ad-hoc pitch recorder for a topic-only session.
-function practiceAgainHref(session: PracticeSessionRecord, modules: TrainingModule[]) {
+// the ad-hoc pitch recorder for a topic-only session. moduleSlug/chapterSlug
+// are resolved server-side (see getOwnPracticeSession).
+function practiceAgainHref(session: PracticeSessionRecord) {
   if (session.chapterId) {
-    for (const m of modules) {
-      const chapter = m.chapters.find((c) => c.id === session.chapterId);
-      if (chapter) return `/modules/${m.slug}/chapters/${chapter.slug}/roleplay`;
-    }
-    return "/modules";
+    return session.moduleSlug && session.chapterSlug
+      ? `/modules/${session.moduleSlug}/chapters/${session.chapterSlug}/roleplay`
+      : "/modules";
   }
   if (session.examId) {
-    const m = modules.find((mod) => mod.exam.id === session.examId);
-    return m ? `/modules/${m.slug}/exam` : "/modules";
+    return session.moduleSlug ? `/modules/${session.moduleSlug}/exam` : "/modules";
   }
   return "/record";
 }
@@ -44,10 +42,6 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
     if (err instanceof ApiClientError && err.status === 401) redirect("/login");
     throw err;
   }
-
-  const modules = await listModules(token)
-    .then((r) => r.items)
-    .catch(() => [] as TrainingModule[]);
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -69,7 +63,7 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
           </div>
 
           <Link
-            href={practiceAgainHref(session, modules)}
+            href={practiceAgainHref(session)}
             className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
           >
             <SparkleIcon size={14} />

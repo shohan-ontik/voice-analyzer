@@ -3,13 +3,13 @@ import { ModuleCard } from "../components/modules/ModuleCard";
 import { ModulesFilters } from "../components/modules/ModulesFilters";
 import { ApiClientError, listModules } from "../lib/apiClient";
 import { getSessionToken } from "../lib/session";
-import type { TrainingModule } from "../lib/types";
+import type { TrainingModuleSummary } from "../lib/types";
 
 export default async function ModulesPage() {
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
-  let modules: TrainingModule[];
+  let modules: TrainingModuleSummary[];
   try {
     const { items } = await listModules(token);
     modules = items;

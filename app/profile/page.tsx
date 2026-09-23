@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRightIcon, BuildingIcon, CalendarIcon, PhoneIcon } from "../components/icons";
 import { authFetch } from "../lib/clientFetch";
-import { getChapterProgress } from "../lib/moduleProgress";
 import { profileData } from "../lib/profileData";
 import { toEvaluationReport, type EvaluationReport, type ReportKind } from "../lib/reportsData";
 import type { AppUser, PracticeSessionRecord, StatsSummary } from "../lib/types";
@@ -58,8 +57,8 @@ export default function ProfilePage() {
   }, []);
 
   const trainingProgress = modules?.map((m) => {
-    const { completed, total } = getChapterProgress(m);
-    return { skill: m.title, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
+    const total = m.chapterCount;
+    return { skill: m.title, percent: total > 0 ? Math.round((m.completedChapterCount / total) * 100) : 0 };
   });
 
   return (

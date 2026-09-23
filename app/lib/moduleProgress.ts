@@ -3,11 +3,11 @@
 // hand-set status fields that can drift out of sync with what they
 // summarize.
 
-import type { LearningMaterial, TrainingModule } from "./types";
+import type { LearningMaterial, TrainingModule, TrainingModuleSummary } from "./types";
 
 export type ModuleStatus = "completed" | "in_progress" | "not_started";
 export type ExamStatus = "passed" | "failed" | "ready" | "locked";
-export type ChapterStatus = "completed" | "unlocked" | "locked";
+export type ChapterStatus = "completed" | "in_progress" | "unlocked" | "locked";
 export type MaterialStatus = "completed" | "unlocked" | "locked";
 
 export function getChapterProgress(trainingModule: TrainingModule): { completed: number; total: number } {
@@ -16,14 +16,15 @@ export function getChapterProgress(trainingModule: TrainingModule): { completed:
   return { completed, total };
 }
 
-// A module is only "completed" once every chapter is completed AND its exam
-// is passed — finishing all chapters with the exam still pending stays
-// "in_progress".
-export function getModuleStatus(trainingModule: TrainingModule): ModuleStatus {
-  const { completed, total } = getChapterProgress(trainingModule);
-
-  if (completed === total && trainingModule.exam.passed) return "completed";
-  if (completed === 0) return "not_started";
+// A module is only "completed" once its progressPercent hits 100 — which,
+// by the backend's formula (chapters 80% + exam 20%), only happens once
+// every chapter is completed AND the exam is passed. Any progress above 0%
+// (a chapter fully done, or even a single material within one) counts as
+// "in_progress". Works for both the list summary and the full detail shape,
+// since both carry progressPercent.
+export function getModuleStatus(trainingModule: { progressPercent: number }): ModuleStatus {
+  if (trainingModule.progressPercent >= 100) return "completed";
+  if (trainingModule.progressPercent <= 0) return "not_started";
   return "in_progress";
 }
 
@@ -40,13 +41,18 @@ export function getExamStatus(trainingModule: TrainingModule): ExamStatus {
 }
 
 // A chapter is locked until every chapter before it (in array order) is
-// completed — the first chapter is always at least unlocked.
+// completed — the first chapter is always at least unlocked. Once unlocked,
+// completing any of its materials without finishing the whole chapter moves
+// it to "in_progress" rather than leaving it looking untouched.
 export function getChapterStatus(trainingModule: TrainingModule, chapterIndex: number): ChapterStatus {
   const chapter = trainingModule.chapters[chapterIndex];
   if (chapter.completedAt !== null) return "completed";
 
   const previousChapter = trainingModule.chapters[chapterIndex - 1];
   if (previousChapter?.completedAt === null) return "locked";
+
+  const hasProgress = chapter.materials.some((m) => m.completedAt !== null);
+  if (hasProgress) return "in_progress";
   return "unlocked";
 }
 
@@ -72,7 +78,7 @@ export function getCurrentChapter(trainingModule: TrainingModule) {
 // the first in-progress module (by order), falling back to the first
 // not-yet-started one. Null once every module is completed, or there are
 // none at all.
-export function pickContinueModule(modules: TrainingModule[]): TrainingModule | null {
+export function pickContinueModule(modules: TrainingModuleSummary[]): TrainingModuleSummary | null {
   const inProgress = modules.find((m) => getModuleStatus(m) === "in_progress");
   if (inProgress) return inProgress;
   return modules.find((m) => getModuleStatus(m) === "not_started") ?? null;

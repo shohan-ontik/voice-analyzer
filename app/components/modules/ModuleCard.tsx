@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRightIcon, AwardIcon, CheckCircleIcon, ClockIcon, LockIcon } from "../icons";
-import { getChapterProgress, getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
-import type { TrainingModule } from "../../lib/types";
+import { getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
+import type { TrainingModuleSummary } from "../../lib/types";
+import { ProgressBar } from "../shared/ProgressBar";
 
 export const MODULE_STATUS_META: Record<
   ModuleStatus,
@@ -17,32 +18,25 @@ export const MODULE_STATUS_META: Record<
   },
 };
 
-export function ModuleCard({ module: trainingModule }: { module: TrainingModule }) {
+export function ModuleCard({ module: trainingModule }: { module: TrainingModuleSummary }) {
   const meta = MODULE_STATUS_META[getModuleStatus(trainingModule)];
-  const { completed, total } = getChapterProgress(trainingModule);
-  const progressPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const { chapterCount: total, completedChapterCount: completed, progressPercent } = trainingModule;
 
   return (
     <div className="rounded-2xl border border-border bg-background-elevated overflow-hidden flex flex-col">
-      <div className="relative h-[160px] bg-border">
-        {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
-        <img src={trainingModule.thumbnailUrl ?? undefined} alt="" className="w-full h-full object-cover" />
-
-        <span
-          className={`absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${meta.badgeClass}`}
-        >
-          <meta.Icon size={12} />
-          {meta.label}
-        </span>
-
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2">
-          <span className="text-[11.5px] font-semibold text-white">
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 ${meta.badgeClass}`}
+          >
+            <meta.Icon size={12} />
+            {meta.label}
+          </span>
+          <span className="text-[11.5px] font-semibold text-foreground-muted shrink-0">
             {completed} / {total} চ্যাপ্টার কমপ্লিট
           </span>
         </div>
-      </div>
 
-      <div className="p-4 flex flex-col gap-3 flex-1">
         <div>
           <div className="font-display font-bold text-[15px] text-foreground mb-1.5 truncate">
             {trainingModule.title}
@@ -52,9 +46,7 @@ export function ModuleCard({ module: trainingModule }: { module: TrainingModule 
           </p>
         </div>
 
-        <div className="h-1.5 rounded-full bg-border overflow-hidden">
-          <div className={`h-full rounded-full ${meta.barClass}`} style={{ width: `${progressPercent}%` }} />
-        </div>
+        <ProgressBar percent={progressPercent} fillClassName={meta.barClass} size="sm" />
 
         <div className="flex items-center justify-between mt-auto pt-1">
           <span className="flex items-center gap-1.5 text-[12px] font-semibold text-warning-ink">
