@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AnalysisBreakdown } from "../../components/AnalysisBreakdown";
 import { BackHeader } from "../../components/BackHeader";
-import { SparkleIcon } from "../../components/icons";
 import { ScoreCircle } from "../../components/history/ScoreCircle";
+import { PracticeAgainButton } from "../../components/PracticeAgainButton";
 import { ApiClientError, getOwnPracticeSession } from "../../lib/apiClient";
 import { getSessionToken } from "../../lib/session";
 import type { PracticeSessionRecord } from "../../lib/types";
@@ -62,13 +61,7 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          <Link
-            href={practiceAgainHref(session)}
-            className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
-          >
-            <SparkleIcon size={14} />
-            আবার প্র্যাকটিস করুন
-          </Link>
+          <PracticeAgainButton href={practiceAgainHref(session)} />
         </div>
 
         <div className="p-6 sm:p-8 lg:p-12">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeftIcon } from "../../../../../../../components/icons";
+import { PracticeAgainButton } from "../../../../../../../components/PracticeAgainButton";
 import { getCategoryIcon } from "../../../../../../../lib/categoryIcon";
 import { readCachedReport, reportCacheKey } from "../../../../../../../lib/roleplayReportCache";
 
@@ -113,12 +114,10 @@ export default function ChapterRoleplayReportPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3 pt-2">
-            <Link
+            <PracticeAgainButton
               href={recordHref}
-              className="w-full max-w-[320px] text-center px-5 py-3 rounded-xl border-[1.5px] border-navy text-navy font-display font-semibold text-[14px] cursor-pointer"
-            >
-              আবার প্র্যাকটিস করুন
-            </Link>
+              className="w-full max-w-[320px] inline-flex items-center justify-center gap-2 text-center px-5 py-3 rounded-xl border-[1.5px] border-navy text-navy font-display font-semibold text-[14px] cursor-pointer"
+            />
             <Link href="/history" className="text-[13.5px] font-semibold text-navy cursor-pointer">
               সকল রিপোর্ট দেখুন
             </Link>
