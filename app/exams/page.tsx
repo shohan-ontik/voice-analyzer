@@ -1,17 +1,21 @@
 import { redirect } from "next/navigation";
-import { ExamCard } from "../components/exams/ExamCard";
+import { ExamsList } from "../components/exams/ExamsList";
 import { ApiClientError, listExams } from "../lib/apiClient";
 import { getSessionToken } from "../lib/session";
 import type { ExamListItem } from "../lib/types";
+
+export const EXAMS_PAGE_SIZE = 10;
 
 export default async function ExamsPage() {
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
   let exams: ExamListItem[];
+  let total: number;
   try {
-    const { items } = await listExams(token);
-    exams = items;
+    const result = await listExams(token, { page: 1, pageSize: EXAMS_PAGE_SIZE });
+    exams = result.items;
+    total = result.total;
   } catch (err) {
     if (err instanceof ApiClientError && err.status === 401) redirect("/login");
     throw err;
@@ -28,17 +32,7 @@ export default async function ExamsPage() {
         </p>
       </div>
 
-      <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {exams.length === 0 ? (
-          <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো মডিউল খুঁজে পাওয়া যায়নি।</div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {exams.map((item) => (
-              <ExamCard key={item.exam.id} exam={item.exam} status={item.status} moduleSlug={item.moduleSlug} />
-            ))}
-          </div>
-        )}
-      </div>
+      <ExamsList initialExams={exams} initialTotal={total} pageSize={EXAMS_PAGE_SIZE} />
     </div>
   );
 }

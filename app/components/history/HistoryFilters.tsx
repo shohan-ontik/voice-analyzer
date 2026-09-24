@@ -15,10 +15,17 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "exam", label: "এক্সাম" },
 ];
 
-export function HistoryFilters({ initialReports, total }: { initialReports: EvaluationReport[]; total: number }) {
+export function HistoryFilters({
+  initialReports,
+  total: initialTotal,
+}: {
+  initialReports: EvaluationReport[];
+  total: number;
+}) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [reports, setReports] = useState(initialReports);
+  const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -30,8 +37,9 @@ export function HistoryFilters({ initialReports, total }: { initialReports: Eval
       const nextPage = page + 1;
       const res = await authFetch(`/api/sessions?page=${nextPage}&pageSize=${HISTORY_PAGE_SIZE}`);
       if (res.ok) {
-        const body = (await res.json()) as { items: PracticeSessionRecord[] };
+        const body = (await res.json()) as { items: PracticeSessionRecord[]; total: number };
         setReports((prev) => [...prev, ...body.items.map(toEvaluationReport)]);
+        setTotal(body.total);
         setPage(nextPage);
       }
     } finally {

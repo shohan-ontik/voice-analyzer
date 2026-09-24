@@ -129,12 +129,24 @@ export function changePassword(token: string, input: { currentPassword: string; 
   return request<{ success: true }>("/auth/me/password", { method: "PATCH", token, body: input });
 }
 
-export function listModules(token: string) {
-  return request<{ items: TrainingModuleSummary[] }>("/modules", { token });
+export function listModules(token: string, params: { page?: number; pageSize?: number } = {}) {
+  return request<{ items: TrainingModuleSummary[]; total: number }>("/modules", {
+    token,
+    searchParams: {
+      page: params.page?.toString(),
+      pageSize: params.pageSize?.toString(),
+    },
+  });
 }
 
-export function listExams(token: string) {
-  return request<{ items: ExamListItem[] }>("/modules/exams", { token });
+export function listExams(token: string, params: { page?: number; pageSize?: number } = {}) {
+  return request<{ items: ExamListItem[]; total: number }>("/modules/exams", {
+    token,
+    searchParams: {
+      page: params.page?.toString(),
+      pageSize: params.pageSize?.toString(),
+    },
+  });
 }
 
 export function getModule(token: string, slug: string) {

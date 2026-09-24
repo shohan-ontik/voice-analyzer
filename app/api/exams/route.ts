@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiErrorResponse, listModules } from "@/app/lib/apiClient";
+import { apiErrorResponse, listExams } from "@/app/lib/apiClient";
 import { getSessionToken } from "@/app/lib/session";
 
 export async function GET(request: NextRequest) {
@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
   const pageSize = searchParams.get("pageSize");
 
   try {
-    const result = await listModules(token, {
+    const result = await listExams(token, {
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
     });
     return NextResponse.json(result);
   } catch (err) {
-    return apiErrorResponse(err, "Failed to load modules.");
+    return apiErrorResponse(err, "Failed to load exams.");
   }
 }

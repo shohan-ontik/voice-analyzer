@@ -137,43 +137,34 @@ function HomeContent() {
               করুন।
             </div>
           ) : (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element -- placeholder thumbnail from an external stub image host */}
-              <img
-                src={continueModule.thumbnailUrl ?? undefined}
-                alt=""
-                className="w-full h-40 rounded-xl object-cover bg-border"
-              />
-
-              <div>
-                <div className="font-display font-bold text-[18px] text-foreground mb-1.5">
-                  {continueModule.title}
-                </div>
-                <p className="text-[13px] text-foreground-muted leading-relaxed mb-4 line-clamp-2">
-                  মডিউল {continueModule.order + 1}: {continueModule.description}
-                </p>
-
-                <div className="flex items-center justify-between text-[13px] mb-2">
-                  <span className="font-semibold text-foreground">
-                    {continueProgressPercent}% সম্পন্ন
-                  </span>
-                  <span className="text-foreground-muted">
-                    {continueChaptersRemaining}টি অধ্যায় বাকি
-                  </span>
-                </div>
-                <ProgressBar percent={continueProgressPercent} size="sm" className="mb-5" />
-
-                <div className="flex justify-end">
-                  <Link
-                    href={`/modules/${continueModule.slug}`}
-                    className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
-                  >
-                    {continueChaptersRemaining > 0 ? "রিজিউম করুন" : "পরীক্ষা দিন"}
-                    <PlayIcon size={12} />
-                  </Link>
-                </div>
+            <div>
+              <div className="font-display font-bold text-[18px] text-foreground mb-1.5">
+                {continueModule.title}
               </div>
-            </>
+              <p className="text-[13px] text-foreground-muted leading-relaxed mb-4 line-clamp-2">
+                মডিউল {continueModule.order + 1}: {continueModule.description}
+              </p>
+
+              <div className="flex items-center justify-between text-[13px] mb-2">
+                <span className="font-semibold text-foreground">
+                  {continueProgressPercent}% সম্পন্ন
+                </span>
+                <span className="text-foreground-muted">
+                  {continueChaptersRemaining}টি অধ্যায় বাকি
+                </span>
+              </div>
+              <ProgressBar percent={continueProgressPercent} size="sm" className="mb-5" />
+
+              <div className="flex justify-end">
+                <Link
+                  href={`/modules/${continueModule.slug}`}
+                  className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
+                >
+                  {continueChaptersRemaining > 0 ? "রিজিউম করুন" : "পরীক্ষা দিন"}
+                  <PlayIcon size={12} />
+                </Link>
+              </div>
+            </div>
           )}
         </div>
 
