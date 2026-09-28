@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon, XIcon } from "../icons";
 import type { ExamStatus } from "../../lib/moduleProgress";
+import { formatBnDate } from "../../lib/formatDate";
 import type { ModuleExam } from "../../lib/types";
 
 const STATUS_META: Record<ExamStatus, { label: string; badgeClass: string; Icon: typeof CheckCircleIcon }> = {
@@ -35,7 +36,7 @@ export function ExamCard({
         {exam.dueDate && (
           <span className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
             <CalendarIcon size={13} />
-            শেষ তারিখ: {exam.dueDate}
+            শেষ তারিখ: {formatBnDate(exam.dueDate)}
           </span>
         )}
       </div>

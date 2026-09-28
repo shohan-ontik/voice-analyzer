@@ -3,17 +3,21 @@
 import { useState } from "react";
 import { authFetch } from "../../lib/clientFetch";
 import { RefreshIcon } from "../icons";
-import type { ExamListItem } from "../../lib/types";
+import type { ExamListItem, ExamSortBy, SortOrder } from "../../lib/types";
 import { ExamCard } from "./ExamCard";
 
 export function ExamsList({
   initialExams,
   initialTotal,
   pageSize,
+  sortBy,
+  sortOrder,
 }: {
   initialExams: ExamListItem[];
   initialTotal: number;
   pageSize: number;
+  sortBy: ExamSortBy;
+  sortOrder: SortOrder;
 }) {
   const [exams, setExams] = useState(initialExams);
   const [total, setTotal] = useState(initialTotal);
@@ -29,7 +33,7 @@ export function ExamsList({
     setLoadError(null);
     const nextPage = page + 1;
     try {
-      const res = await authFetch(`/api/exams?page=${nextPage}&pageSize=${pageSize}`);
+      const res = await authFetch(`/api/exams?page=${nextPage}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error?.message ?? "এক্সাম লোড করা যায়নি।");
       setExams((prev) => [...prev, ...(body.items as ExamListItem[])]);

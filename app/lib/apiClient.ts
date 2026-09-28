@@ -4,7 +4,9 @@ import type {
   AppUser,
   ApiErrorBody,
   ExamListItem,
+  ExamSortBy,
   PracticeSessionRecord,
+  SortOrder,
   StatsSummary,
   Topic,
   TrainingModule,
@@ -139,12 +141,17 @@ export function listModules(token: string, params: { page?: number; pageSize?: n
   });
 }
 
-export function listExams(token: string, params: { page?: number; pageSize?: number } = {}) {
+export function listExams(
+  token: string,
+  params: { page?: number; pageSize?: number; sortBy?: ExamSortBy; sortOrder?: SortOrder } = {}
+) {
   return request<{ items: ExamListItem[]; total: number }>("/modules/exams", {
     token,
     searchParams: {
       page: params.page?.toString(),
       pageSize: params.pageSize?.toString(),
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
     },
   });
 }

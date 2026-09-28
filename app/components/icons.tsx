@@ -387,3 +387,13 @@ export function ShareIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function SortIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <line x1="4" y1="7" x2="20" y2="7" />
+      <line x1="7" y1="12" x2="17" y2="12" />
+      <line x1="10" y1="17" x2="14" y2="17" />
+    </svg>
+  );
+}

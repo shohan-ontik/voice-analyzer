@@ -160,6 +160,16 @@ export type TrainingModuleSummary = {
 // exam, with its unlock/pass status pre-computed server-side (mirrors
 // getExamStatus in app/lib/moduleProgress.ts, which the detail endpoint's
 // full TrainingModule still needs to compute this locally).
+export type ExamSortBy = "order" | "dueDate";
+export type SortOrder = "asc" | "desc";
+
+export function parseExamSort(sortBy: unknown, sortOrder: unknown): { sortBy: ExamSortBy; sortOrder: SortOrder } {
+  return {
+    sortBy: sortBy === "dueDate" ? "dueDate" : "order",
+    sortOrder: sortOrder === "desc" ? "desc" : "asc",
+  };
+}
+
 export type ExamListItem = {
   moduleSlug: string;
   exam: ModuleExam;

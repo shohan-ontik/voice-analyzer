@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ExamStatus } from "../../lib/moduleProgress";
+import { formatBnDate } from "../../lib/formatDate";
 import type { ModuleExam } from "../../lib/types";
 import { AwardIcon, CalendarIcon, CheckCircleIcon, LockIcon, SparkleIcon, XIcon } from "../icons";
 
@@ -65,7 +66,7 @@ export function ModuleExamBanner({
                 </span>
                 <span className="flex items-center gap-1 text-foreground-muted">
                   <CalendarIcon size={13} />
-                  Deadline: {exam.dueDate}
+                  শেষ তারিখ: {formatBnDate(exam.dueDate)}
                 </span>
               </>
             )}
