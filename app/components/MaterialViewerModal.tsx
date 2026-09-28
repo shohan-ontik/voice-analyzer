@@ -102,7 +102,7 @@ export function MaterialViewerModal({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 text-foreground-muted hover:text-foreground p-1"
+            className="shrink-0 text-foreground-muted hover:text-foreground p-1 cursor-pointer"
             aria-label="বন্ধ করুন"
           >
             <XIcon size={18} />

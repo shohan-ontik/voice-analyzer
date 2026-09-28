@@ -44,9 +44,12 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
   return (
     <header className="h-16 lg:h-[76px] shrink-0 border-b border-border bg-background-elevated flex items-center justify-between px-4 lg:px-8">
       <div className="flex items-center gap-2 text-[13.5px] min-w-0">
-        <div className="lg:hidden w-8 h-8 rounded-[9px] bg-navy flex items-center justify-center text-navy-ink shrink-0">
+        <Link
+          href={"/"}
+          className="lg:hidden w-8 h-8 rounded-[9px] bg-navy flex items-center justify-center text-navy-ink shrink-0"
+        >
           <SparkleIcon size={15} />
-        </div>
+        </Link>
         <span className="hidden lg:inline text-foreground-muted">
           সেলস অফিসার পোর্টাল (SO)
         </span>
@@ -59,7 +62,7 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
       <div className="flex items-center gap-2 lg:gap-3.5 shrink-0">
         <button
           type="button"
-          className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full border border-border flex items-center justify-center text-foreground-muted hover:text-foreground shrink-0"
+          className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full border border-border flex items-center justify-center text-foreground-muted hover:text-foreground shrink-0 cursor-pointer"
         >
           <BellIcon size={16} />
           <span className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 w-[7px] h-[7px] rounded-full bg-accent" />
@@ -69,7 +72,7 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-2.5 pl-1 pr-1 py-1 rounded-full hover:bg-background"
+            className="flex items-center gap-2.5 pl-1 pr-1 py-1 rounded-full hover:bg-background cursor-pointer"
           >
             <div className="w-8 h-8 lg:w-[34px] lg:h-[34px] rounded-full bg-teal-soft flex items-center justify-center font-display font-semibold text-[12px] lg:text-[13px] text-teal shrink-0">
               {initials(dashboardUser.fullName)}
