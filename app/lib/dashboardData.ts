@@ -20,7 +20,6 @@ export const dashboardUser: DashboardUser = {
 };
 
 export type UpcomingExam = {
-  urgencyBadge: string;
   dueDate: string;
   title: string;
   description: string;
@@ -29,7 +28,6 @@ export type UpcomingExam = {
 };
 
 export const upcomingExam: UpcomingExam = {
-  urgencyBadge: "জরুরি মূল্যায়ন",
   dueDate: "২৫/১০/২০২৬",
   title: "এথিক্স ও কম্প্লায়েন্স ২০২৬",
   description:

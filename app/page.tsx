@@ -3,27 +3,21 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { PitchesRemainingCard } from "./components/home/PitchesRemainingCard";
 import {
   AwardIcon,
   CalendarIcon,
   CheckCircleIcon,
-  DotIcon,
   GraduationCapIcon,
-  MicIcon,
   PlayIcon,
-  SparkleIcon,
 } from "./components/icons";
+import { MODULE_STATUS_META } from "./components/modules/ModuleCard";
 import { ProgressBar } from "./components/shared/ProgressBar";
 import { authFetch } from "./lib/clientFetch";
-import { dashboardUser, upcomingExam } from "./lib/dashboardData";
+import { upcomingExam } from "./lib/dashboardData";
 import { getModuleStatus, pickContinueModule } from "./lib/moduleProgress";
 import type { AppUser } from "./lib/types";
 import { useModules } from "./lib/useModules";
-
-const CONTINUE_STATUS_BADGE: Record<"in_progress" | "not_started", string> = {
-  in_progress: "চলমান",
-  not_started: "শুরু করুন",
-};
 
 export default function Home() {
   return (
@@ -60,6 +54,9 @@ function HomeContent() {
     ? continueModule.chapterCount - continueModule.completedChapterCount
     : 0;
   const continueProgressPercent = continueModule?.progressPercent ?? 0;
+  const continueStatusMeta = continueModule
+    ? MODULE_STATUS_META[getModuleStatus(continueModule)]
+    : null;
 
   // if (!showWelcome) {
   //   return (
@@ -72,36 +69,10 @@ function HomeContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <div className="mx-4 mt-4 rounded-2xl border border-border bg-background-elevated p-5 lg:mx-0 lg:mt-0 lg:rounded-none lg:border-0 lg:bg-transparent lg:px-10 lg:pt-10 lg:pb-8 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6">
-        <div>
-          <h1 className="font-display font-bold text-[22px] lg:text-[30px] text-foreground mb-1.5">
-            ওয়েলকাম, {user ? user.name.trim().split(/\s+/)[0] : "…"}! 👋
-          </h1>
-          <p className="text-[13.5px] lg:text-[14.5px] text-foreground-muted">
-            {dashboardUser.role} • {dashboardUser.team}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.push(`/modules/${continueModule?.slug}`)}
-            className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-navy text-navy-ink font-display font-semibold text-sm hover:-translate-y-px transition-transform cursor-pointer"
-          >
-            <MicIcon size={16} />
-            পিচ প্র্যাকটিস করুন
-            <SparkleIcon size={14} />
-          </button>
-          <button
-            type="button"
-            className="hidden lg:inline-flex items-center gap-2 px-5 py-3.5 rounded-xl border-[1.5px] border-navy/20 bg-navy-soft text-navy font-display font-semibold text-sm cursor-pointer"
-          >
-            <DotIcon size={9} />
-            সক্রিয় প্রশিক্ষণ ট্র্যাক
-          </button>
-        </div>
+      <div className="px-4 mt-5 lg:px-10">
+        <PitchesRemainingCard />
       </div>
-
-      <div className="px-4 pb-8 mt-5 lg:mt-0 lg:px-10 lg:pb-12 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 lg:gap-6 items-start">
+      <div className="px-4 pb-8 mt-5 lg:mt-5 lg:px-10 lg:pb-12 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 lg:gap-6 items-start">
         <div className="rounded-2xl border border-border bg-background-elevated p-6 flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -110,15 +81,12 @@ function HomeContent() {
                 লার্নিং কন্টিনিউ করুন
               </span>
             </div>
-            {continueModule && (
-              <span className="px-3 py-1 rounded-full bg-background border border-border text-foreground text-[11px] font-bold whitespace-nowrap">
-                {
-                  CONTINUE_STATUS_BADGE[
-                    getModuleStatus(continueModule) as
-                      | "in_progress"
-                      | "not_started"
-                  ]
-                }
+            {continueStatusMeta && (
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${continueStatusMeta.badgeClass}`}
+              >
+                <continueStatusMeta.Icon size={12} />
+                {continueStatusMeta.label}
               </span>
             )}
           </div>
@@ -182,9 +150,6 @@ function HomeContent() {
                 আপকামিং এক্সাম
               </span>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-warning-soft text-warning-ink text-[11px] font-bold">
-              {upcomingExam.urgencyBadge}
-            </span>
           </div>
 
           <div className="rounded-xl border border-border p-4 flex flex-col gap-3">
