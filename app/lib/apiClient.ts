@@ -15,7 +15,14 @@ import type {
 import type { AnalysisCategory, TranscriptSegment } from "./analysis";
 import { clearSessionCookie } from "./session";
 
-export const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:4000/api/v1";
+// Read lazily rather than at module load: `next build` (e.g. inside Docker,
+// where .env is not copied in) imports this module without the variable set,
+// and it's only needed once a request actually hits the backend.
+export function getApiBaseUrl() {
+  const baseUrl = process.env.API_BASE_URL;
+  if (!baseUrl) throw new Error("API_BASE_URL is not set. Add it to .env (see .env.local.example).");
+  return baseUrl.replace(/\/+$/, "");
+}
 
 export class ApiClientError extends Error {
   status: number;
@@ -45,7 +52,7 @@ async function request<T>(
   path: string,
   options: { method?: string; token?: string | null; body?: unknown; searchParams?: Record<string, string | undefined> } = {}
 ): Promise<T> {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const url = new URL(`${getApiBaseUrl()}${path}`);
   if (options.searchParams) {
     for (const [key, value] of Object.entries(options.searchParams)) {
       if (value !== undefined) url.searchParams.set(key, value);
@@ -181,10 +188,13 @@ export type HealthStatus = {
 // Not built on request(): /healthz is unauthenticated and a 503 is a
 // meaningful answer here, not an error to throw.
 export async function checkHealth(): Promise<HealthStatus> {
+  // Outside the try: a missing API_BASE_URL is a config error to surface,
+  // not a "backend down" result.
+  const healthUrl = `${getApiBaseUrl()}/healthz`;
   const started = performance.now();
   const checkedAt = new Date().toISOString();
   try {
-    const res = await fetch(`${API_BASE_URL}/healthz`, {
+    const res = await fetch(healthUrl, {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });

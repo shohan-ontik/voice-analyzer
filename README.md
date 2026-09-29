@@ -38,8 +38,8 @@ This app calls a separate backend API (`voice-analyzer-api`, see `app/lib/apiCli
    cp .env.docker.example .env
    ```
    - `GEMINI_API_KEY`: your key from https://aistudio.google.com/apikey
-   - `API_BASE_URL`: URL of the `voice-analyzer-api` backend
-     - Backend running on the same machine, outside Docker: leave the default (`http://host.docker.internal:4000/api/v1`)
+   - `API_BASE_URL`: URL of the `voice-analyzer-api` backend. It is required — the app no longer falls back to a default — and `docker-compose.yml` loads it from `.env` via `env_file`.
+     - Backend running on the same machine, outside Docker: leave the default (`http://host.docker.internal:4000/api/v1`). Don't use `localhost` here — inside the container that's the container itself.
      - Backend running elsewhere (another server, cloud): put its URL here instead
 
 2. Build and start:

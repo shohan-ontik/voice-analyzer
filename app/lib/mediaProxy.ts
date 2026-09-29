@@ -1,5 +1,5 @@
 import "server-only";
-import { API_BASE_URL } from "./apiClient";
+import { getApiBaseUrl } from "./apiClient";
 import { getSessionToken } from "./session";
 
 // Shared by the video/pdf material streaming routes: the browser's <video>
@@ -15,7 +15,7 @@ export async function proxyMaterialStream(request: Request, materialId: string, 
 
   const range = request.headers.get("range");
 
-  const upstream = await fetch(`${API_BASE_URL}/media/materials/${encodeURIComponent(materialId)}/${kind}`, {
+  const upstream = await fetch(`${getApiBaseUrl()}/media/materials/${encodeURIComponent(materialId)}/${kind}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       ...(range ? { Range: range } : {}),
