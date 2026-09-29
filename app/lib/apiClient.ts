@@ -166,3 +166,48 @@ export function markMaterialComplete(token: string, moduleSlug: string, chapterS
     { method: "POST", token }
   );
 }
+
+export type HealthStatus = {
+  // "up": backend and database healthy. "degraded": backend answered but
+  // reports the database down (503). "down": backend unreachable or errored.
+  status: "up" | "degraded" | "down";
+  database: "up" | "down" | "unknown";
+  httpStatus: number | null;
+  latencyMs: number;
+  checkedAt: string;
+  error: string | null;
+};
+
+// Not built on request(): /healthz is unauthenticated and a 503 is a
+// meaningful answer here, not an error to throw.
+export async function checkHealth(): Promise<HealthStatus> {
+  const started = performance.now();
+  const checkedAt = new Date().toISOString();
+  try {
+    const res = await fetch(`${API_BASE_URL}/healthz`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+    const latencyMs = Math.round(performance.now() - started);
+    const body = (await res.json().catch(() => null)) as { ok?: boolean; database?: "up" | "down" } | null;
+    const database = body?.database ?? "unknown";
+    const status = res.ok && body?.ok ? "up" : res.status === 503 ? "degraded" : "down";
+    return {
+      status,
+      database,
+      httpStatus: res.status,
+      latencyMs,
+      checkedAt,
+      error: status === "up" ? null : `হেলথ চেক স্ট্যাটাস ${res.status} দিয়েছে।`,
+    };
+  } catch (err) {
+    return {
+      status: "down",
+      database: "unknown",
+      httpStatus: null,
+      latencyMs: Math.round(performance.now() - started),
+      checkedAt,
+      error: err instanceof Error && err.name === "TimeoutError" ? "৫ সেকেন্ডে কোনো সাড়া পাওয়া যায়নি।" : "সার্ভারে পৌঁছানো যায়নি।",
+    };
+  }
+}

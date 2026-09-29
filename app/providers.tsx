@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { Topic } from "./lib/types";
 import type { AnalysisResult } from "./lib/analysis";
 import { authFetch } from "./lib/clientFetch";
+import { isPublicPath } from "./lib/constants";
 
 export type { Topic } from "./lib/types";
 export type { AnalysisResult } from "./lib/analysis";
@@ -37,9 +38,9 @@ const AppStateContext = createContext<AppState | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [topics, setTopics] = useState<Topic[]>([]);
-  // /login has no session yet, so there's nothing to load there — start
-  // "not loading" instead of flipping it off in an effect.
-  const [topicsLoading, setTopicsLoading] = useState(pathname !== "/login");
+  // Public pages (/login, /health) may have no session, so there's nothing to
+  // load there — start "not loading" instead of flipping it off in an effect.
+  const [topicsLoading, setTopicsLoading] = useState(!isPublicPath(pathname));
   const [topicsError, setTopicsError] = useState<string | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [recording, setRecordingState] = useState<Recording | null>(null);
@@ -48,9 +49,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const fetchedTopicsRef = useRef(false);
 
   useEffect(() => {
-    // Skip while on /login (no session yet, a 401 here is expected) and
+    // Skip on public pages (maybe no session, a 401 there is expected) and
     // fetch only once — otherwise this would refire on every navigation.
-    if (pathname === "/login" || fetchedTopicsRef.current) return;
+    if (isPublicPath(pathname) || fetchedTopicsRef.current) return;
     fetchedTopicsRef.current = true;
     setTopicsLoading(true);
 

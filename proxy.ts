@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/app/lib/constants";
+import { SESSION_COOKIE_NAME, isPublicPath } from "@/app/lib/constants";
 
 // Optimistic check only: presence of the session cookie, not its validity.
 // Real authorization (valid signature, not banned) happens on every
 // proxied call to voice-analyzer-api via app/lib/apiClient.ts.
 export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE_NAME);
-  const isLoginPage = request.nextUrl.pathname === "/login";
+  const { pathname } = request.nextUrl;
+  const isLoginPage = pathname === "/login";
 
-  if (!hasSession && !isLoginPage) {
+  if (!hasSession && !isPublicPath(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
