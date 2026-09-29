@@ -9,6 +9,14 @@ services:
     # host.docker.internal instead, which extra_hosts below makes work on Linux.
     env_file:
       - .env
+    # The staging backend uses a self-signed certificate, which Node rejects
+    # (DEPTH_ZERO_SELF_SIGNED_CERT). Trust that one cert on top of the normal
+    # CA bundle — verification stays on for every other host (e.g. Gemini).
+    # Refresh certs/staging-ca.pem if the backend's certificate is rotated.
+    volumes:
+      - ./certs/staging-ca.pem:/certs/staging-ca.pem:ro
+    environment:
+      NODE_EXTRA_CA_CERTS: /certs/staging-ca.pem
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
