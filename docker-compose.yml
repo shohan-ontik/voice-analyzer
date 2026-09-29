@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "3002:3000"
     # GEMINI_API_KEY and API_BASE_URL come from .env (see .env.docker.example).
     # The backend runs outside this container, so in .env "localhost" would
     # mean the container itself, not your host machine — use

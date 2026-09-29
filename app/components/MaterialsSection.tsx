@@ -11,12 +11,12 @@ export function MaterialsSection({
   chapterHeadline,
   roleplayHref,
   onMarkComplete,
-}: {
+}: Readonly<{
   materials: LearningMaterial[];
   chapterHeadline: string;
   roleplayHref: string;
   onMarkComplete: (materialId: string) => void;
-}) {
+}>) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openMaterial = materials.find((m) => m.id === openId) ?? null;
 
