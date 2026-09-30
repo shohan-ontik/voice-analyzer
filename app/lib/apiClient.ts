@@ -5,6 +5,7 @@ import type {
   ApiErrorBody,
   ExamListItem,
   ExamSortBy,
+  NotificationsPage,
   PracticeSessionRecord,
   SortOrder,
   StatsSummary,
@@ -160,6 +161,23 @@ export function listExams(
       sortBy: params.sortBy,
       sortOrder: params.sortOrder,
     },
+  });
+}
+
+export function listNotifications(token: string, params: { page?: number; pageSize?: number } = {}) {
+  return request<NotificationsPage>("/notifications", {
+    token,
+    searchParams: {
+      page: params.page?.toString(),
+      pageSize: params.pageSize?.toString(),
+    },
+  });
+}
+
+export function markNotificationRead(token: string, id: string) {
+  return request<{ id: string; isRead: true; readAt: string }>(`/notifications/${encodeURIComponent(id)}/read`, {
+    method: "POST",
+    token,
   });
 }
 

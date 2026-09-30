@@ -22,6 +22,9 @@ export async function POST(
     if (result.chapterCompleted) {
       revalidatePath(`/modules/${slug}`);
     }
+    // The modules list shows progressPercent / completedChapterCount, which
+    // move with every completed lesson (not just a finished chapter).
+    revalidatePath("/modules");
     return NextResponse.json(result);
   } catch (err) {
     return apiErrorResponse(err, "Failed to mark this content as complete.");

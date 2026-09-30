@@ -175,3 +175,29 @@ export type ExamListItem = {
   exam: ModuleExam;
   status: "passed" | "failed" | "ready" | "locked";
 };
+
+export type NotificationType = "module_published" | "exam_deadline";
+
+export type NotificationItem = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  moduleId: string;
+  moduleSlug: string | null;
+  examId: string | null;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationsPage = {
+  items: NotificationItem[];
+  page: number;
+  total: number;
+  unreadCount: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};

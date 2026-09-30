@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { dashboardUser } from "../lib/dashboardData";
 import {
-  BellIcon,
   ChevronDownIcon,
   LogoutIcon,
   SparkleIcon,
   UserIcon,
 } from "./icons";
+import { NotificationBell } from "./notifications/NotificationBell";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -60,13 +60,7 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
       </div>
 
       <div className="flex items-center gap-2 lg:gap-3.5 shrink-0">
-        <button
-          type="button"
-          className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full border border-border flex items-center justify-center text-foreground-muted hover:text-foreground shrink-0 cursor-pointer"
-        >
-          <BellIcon size={16} />
-          <span className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 w-[7px] h-[7px] rounded-full bg-accent" />
-        </button>
+        <NotificationBell />
 
         <div className="relative" ref={menuRef}>
           <button

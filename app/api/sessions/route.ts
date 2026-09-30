@@ -72,6 +72,8 @@ export async function POST(request: Request) {
     // cached Router Cache entry doesn't keep showing it as in-progress.
     if (body.examId && body.moduleSlug) {
       revalidatePath(`/modules/${body.moduleSlug}`);
+      // ...and the modules list, whose card progress reflects the exam too.
+      revalidatePath("/modules");
     }
 
     return NextResponse.json(saved, { status: 201 });

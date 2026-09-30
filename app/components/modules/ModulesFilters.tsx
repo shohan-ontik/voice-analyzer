@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authFetch } from "../../lib/clientFetch";
 import { getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
 import type { TrainingModuleSummary } from "../../lib/types";
@@ -20,11 +20,11 @@ export function ModulesFilters({
   initialModules,
   initialTotal,
   pageSize,
-}: {
+}: Readonly<{
   initialModules: TrainingModuleSummary[];
   initialTotal: number;
   pageSize: number;
-}) {
+}>) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
@@ -35,6 +35,34 @@ export function ModulesFilters({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const hasMore = modules.length < total;
+
+  // Mirrors `page` so the refresh effect below can read it without re-running.
+  const pageRef = useRef(1);
+
+  // Coming back via the browser's back button restores this page from the
+  // client Router Cache, so `initialModules` can predate progress made on a
+  // module page (revalidatePath from an API route can't reach that cache).
+  // Silently refetch everything loaded so far to pick up the latest progress.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch(
+          `/api/modules?page=1&pageSize=${pageSize * pageRef.current}`,
+        );
+        if (!res.ok) return;
+        const body = await res.json();
+        if (cancelled) return;
+        setModules(body.items as TrainingModuleSummary[]);
+        setTotal(body.total as number);
+      } catch {
+        // Keep showing the server-rendered list.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pageSize]);
 
   const loadMore = async () => {
     if (loadingMore) return;
@@ -54,6 +82,7 @@ export function ModulesFilters({
       ]);
       setTotal(body.total as number);
       setPage(nextPage);
+      pageRef.current = nextPage;
     } catch (err) {
       setLoadError(
         err instanceof Error ? err.message : "মডিউল লোড করা যায়নি।",
