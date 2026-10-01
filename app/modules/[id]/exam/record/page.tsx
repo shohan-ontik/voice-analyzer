@@ -288,14 +288,14 @@ export default function ModuleExamRecordPage() {
               <Link
                 href={moduleHref}
                 aria-label="বন্ধ করুন"
-                className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-navy-ink/10 text-navy-ink flex items-center justify-center cursor-pointer lg:hidden"
+                className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-navy-ink/10 text-navy-ink flex items-center justify-center cursor-pointer absolute right-4 top-4 lg:hidden"
               >
                 <XIcon size={16} />
               </Link>
 
-              <div className="hidden lg:block font-display font-bold text-[15px] text-navy-ink">
-                {exam.title}
-              </div>
+              {/* <div className="hidden lg:block font-display font-bold text-[15px] text-navy-ink">
+                চূড়ান্ত মূল্যায়ন পরীক্ষা
+              </div> */}
 
               {status === "recording" && !micError && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-ink/10">
@@ -321,10 +321,10 @@ export default function ModuleExamRecordPage() {
                     <AwardIcon size={36} />
                   </div>
                   <div className="font-display font-bold text-[18px] lg:text-[22px] text-navy-ink">
-                    {exam.title}
+                    চূড়ান্ত মূল্যায়ন পরীক্ষা
                   </div>
                   <div className="text-[13px] lg:text-[14px] text-navy-ink/70">
-                    {exam.moduleLabel}
+                    {trainingModule.title}
                   </div>
                   {status === "requesting" && (
                     <div className="text-[12.5px] text-navy-ink/60 mt-2">

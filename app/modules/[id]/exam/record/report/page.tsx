@@ -3,9 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeftIcon, CheckCircleIcon, XIcon } from "../../../../../components/icons";
+import {
+  ArrowLeftIcon,
+  CheckCircleIcon,
+  XIcon,
+} from "../../../../../components/icons";
 import { getCategoryIcon } from "../../../../../lib/categoryIcon";
-import { examReportCacheKey, readCachedExamReport } from "../../../../../lib/examReportCache";
+import {
+  examReportCacheKey,
+  readCachedExamReport,
+} from "../../../../../lib/examReportCache";
 
 const RING_RADIUS = 78;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -20,8 +27,13 @@ export default function ModuleExamReportPage() {
   if (!report) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
-        <p className="text-[13.5px] text-foreground-muted">কোনো রিপোর্ট পাওয়া যায়নি।</p>
-        <Link href={moduleHref} className="text-[13px] font-semibold text-navy cursor-pointer">
+        <p className="text-[13.5px] text-foreground-muted">
+          কোনো রিপোর্ট পাওয়া যায়নি।
+        </p>
+        <Link
+          href={moduleHref}
+          className="text-[13px] font-semibold text-navy cursor-pointer"
+        >
           মডিউলে ফিরে যান
         </Link>
       </div>
@@ -56,16 +68,27 @@ export default function ModuleExamReportPage() {
               }`}
             >
               {passed ? <CheckCircleIcon size={12} /> : <XIcon size={12} />}
-              {passed ? `পাসড (${result.overall}%)` : `অকৃতকার্য (${result.overall}%)`}
+              {passed
+                ? `পাসড (${result.overall}%)`
+                : `অকৃতকার্য (${result.overall}%)`}
             </span>
-            <h2 className="font-display font-bold text-[20px] lg:text-[26px] text-foreground">{examTitle}</h2>
-            <p className="text-[13px] text-foreground-muted">মডিউল: {moduleTitle}</p>
+            <h2 className="font-display font-bold text-[20px] lg:text-[26px] text-foreground">
+              চূড়ান্ত মূল্যায়ন পরীক্ষা
+            </h2>
+            <p className="text-[13px] text-foreground-muted">{moduleTitle}</p>
 
             <div className="w-full h-px bg-border my-2" />
 
-            <div className="relative w-[180px] h-[180px] lg:w-[200px] lg:h-[200px] flex items-center justify-center">
+            <div className="relative w-45 h-45 lg:w-50 lg:h-50 flex items-center justify-center">
               <svg width="100%" height="100%" viewBox="0 0 180 180">
-                <circle cx="90" cy="90" r={RING_RADIUS} fill="none" stroke="var(--border)" strokeWidth="12" />
+                <circle
+                  cx="90"
+                  cy="90"
+                  r={RING_RADIUS}
+                  fill="none"
+                  stroke="var(--border)"
+                  strokeWidth="12"
+                />
                 <circle
                   cx="90"
                   cy="90"
@@ -80,19 +103,27 @@ export default function ModuleExamReportPage() {
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="font-display font-bold text-[40px] lg:text-[46px] leading-none" style={{ color: ringColor }}>
+                <span
+                  className="font-display font-bold text-[40px] lg:text-[46px] leading-none"
+                  style={{ color: ringColor }}
+                >
                   {result.overall}
                 </span>
-                <span className="text-[12px] text-foreground-muted mt-1">/100</span>
+                <span className="text-[12px] text-foreground-muted mt-1">
+                  /100
+                </span>
               </div>
             </div>
             <div className="text-[13px] font-semibold text-foreground-muted">
-              ওভারঅল স্কোর • পাস মার্ক: <span className="font-bold text-foreground">{passMark}%</span>
+              ওভারঅল স্কোর • পাস মার্ক:{" "}
+              <span className="font-bold text-foreground">{passMark}%</span>
             </div>
           </div>
 
           <div>
-            <h3 className="font-display font-bold text-[15px] text-foreground mb-3">স্কোর ব্রেকডাউন</h3>
+            <h3 className="font-display font-bold text-[15px] text-foreground mb-3">
+              স্কোর ব্রেকডাউন
+            </h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
               {result.categories.map((cat) => {
                 const Icon = getCategoryIcon(cat.name);
@@ -103,15 +134,21 @@ export default function ModuleExamReportPage() {
                     className="rounded-2xl border border-border bg-background-elevated p-4 flex flex-col gap-2"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-display font-bold text-[13.5px] text-foreground">{cat.name}</span>
+                      <span className="font-display font-bold text-[13.5px] text-foreground">
+                        {cat.name}
+                      </span>
                       <div className="w-8 h-8 rounded-full bg-navy-soft text-navy flex items-center justify-center shrink-0">
                         <Icon size={15} />
                       </div>
                     </div>
-                    <div className={`font-display font-bold text-[26px] ${strong ? "text-navy" : "text-accent"}`}>
+                    <div
+                      className={`font-display font-bold text-[26px] ${strong ? "text-navy" : "text-accent"}`}
+                    >
                       {cat.score}%
                     </div>
-                    <p className="text-[12.5px] text-foreground-muted italic leading-relaxed">&ldquo;{cat.feedback}&rdquo;</p>
+                    <p className="text-[12.5px] text-foreground-muted italic leading-relaxed">
+                      &ldquo;{cat.feedback}&rdquo;
+                    </p>
                   </div>
                 );
               })}
@@ -133,7 +170,10 @@ export default function ModuleExamReportPage() {
             >
               মডিউলে ফিরে যান
             </Link>
-            <Link href="/exams" className="text-[13.5px] font-semibold text-navy cursor-pointer">
+            <Link
+              href="/exams"
+              className="text-[13.5px] font-semibold text-navy cursor-pointer"
+            >
               সকল এক্সাম দেখুন
             </Link>
           </div>

@@ -4,12 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { dashboardUser } from "../lib/dashboardData";
-import {
-  ChevronDownIcon,
-  LogoutIcon,
-  SparkleIcon,
-  UserIcon,
-} from "./icons";
+import { ChevronDownIcon, LogoutIcon, SparkleIcon, UserIcon } from "./icons";
 import { NotificationBell } from "./notifications/NotificationBell";
 
 function initials(name: string) {
@@ -44,19 +39,14 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
   return (
     <header className="h-16 lg:h-[76px] shrink-0 border-b border-border bg-background-elevated flex items-center justify-between px-4 lg:px-8">
       <div className="flex items-center gap-2 text-[13.5px] min-w-0">
-        <Link
-          href={"/"}
-          className="lg:hidden w-8 h-8 rounded-[9px] bg-navy flex items-center justify-center text-navy-ink shrink-0"
-        >
-          <SparkleIcon size={15} />
+        <Link href={"/"} className="lg:hidden flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[7px] bg-navy flex items-center justify-center text-navy-ink">
+            <SparkleIcon size={15} />
+          </div>
+          <span className="font-display font-bold text-lg tracking-tight text-foreground">
+            PitchPerfect
+          </span>
         </Link>
-        <span className="hidden lg:inline text-foreground-muted">
-          সেলস অফিসার পোর্টাল (SO)
-        </span>
-        <span className="hidden lg:inline text-foreground-muted">/</span>
-        <span className="hidden lg:inline font-bold text-foreground">
-          {breadcrumb}
-        </span>
       </div>
 
       <div className="flex items-center gap-2 lg:gap-3.5 shrink-0">
