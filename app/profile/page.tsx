@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowRightIcon,
+  BookIcon,
   BuildingIcon,
   CalendarIcon,
+  CheckCircleIcon,
+  LockIcon,
+  MicIcon,
   PhoneIcon,
+  TrendingUpIcon,
 } from "../components/icons";
 import { authFetch } from "../lib/clientFetch";
 import { profileData } from "../lib/profileData";
@@ -103,13 +108,6 @@ export default function ProfilePage() {
 
         <div className="bg-background-elevated border border-border rounded-2xl p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-start gap-5 sm:gap-6">
-            {/* eslint-disable-next-line @next/next/no-img-element -- placeholder photo from an external stub image host */}
-            <img
-              src={profileData.avatarUrl}
-              alt=""
-              className="w-28 h-28 rounded-2xl object-cover shrink-0 bg-border"
-            />
-
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap mb-1">
                 <h1 className="font-display font-bold text-[22px] lg:text-[26px] text-foreground">
@@ -141,15 +139,12 @@ export default function ProfilePage() {
                 </span>
               </div>
             </div>
-
-            <div className="flex flex-col items-end gap-2 shrink-0">
-              <span className="px-4 py-2 rounded-xl border-[1.5px] border-navy/20 bg-navy-soft text-navy font-display font-semibold text-[13px] whitespace-nowrap">
-                {profileData.roleLabel}
-              </span>
+            <div className="shrink-0">
               <Link
                 href="/profile/password"
-                className="text-[12px] font-semibold text-foreground-muted hover:text-foreground"
+                className="cursor-pointer inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-xl border border-border bg-background px-4 py-2.5 text-[13px] font-semibold text-foreground transition-colors hover:bg-navy-soft hover:border-navy hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
+                <LockIcon size={15} />
                 পাসওয়ার্ড পরিবর্তন
               </Link>
             </div>
@@ -162,30 +157,45 @@ export default function ProfilePage() {
               {
                 label: "বাকি পিচ",
                 value: stats ? String(stats.pitchesRemainingThisMonth) : "…",
+                Icon: MicIcon,
+                tone: "bg-accent-soft text-accent",
               },
               {
                 label: "মূল্যায়িত পিচ",
                 value: stats ? String(stats.totalPitchesEvaluated) : "…",
+                Icon: CheckCircleIcon,
+                tone: "bg-teal-soft text-teal",
               },
               {
                 label: "কমপ্লেটেড মডিউল",
                 value: stats ? String(stats.completedModules) : "…",
+                Icon: BookIcon,
+                tone: "bg-navy-soft text-navy",
               },
               {
                 label: "গড় স্কোর",
                 value:
                   stats?.averageScore != null ? `${stats.averageScore}%` : "…",
+                Icon: TrendingUpIcon,
+                tone: "bg-success-soft text-success",
               },
-            ].map((stat) => (
+            ].map(({ label, value, Icon, tone }) => (
               <div
-                key={stat.label}
-                className="rounded-xl bg-background border border-border p-4 lg:p-5 text-center"
+                key={label}
+                className="rounded-xl bg-background border border-border p-4 lg:p-5 flex flex-col items-center gap-3 text-center transition-shadow hover:shadow-sm"
               >
-                <div className="text-[12px] font-semibold text-foreground-muted mb-1.5">
-                  {stat.label}
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${tone}`}
+                >
+                  <Icon size={20} />
                 </div>
-                <div className="font-display font-bold text-[22px] text-foreground">
-                  {stat.value}
+                <div>
+                  <div className="font-display font-bold text-[24px] leading-none text-foreground mb-1.5">
+                    {value}
+                  </div>
+                  <div className="text-[12px] font-semibold text-foreground-muted">
+                    {label}
+                  </div>
                 </div>
               </div>
             ))}
