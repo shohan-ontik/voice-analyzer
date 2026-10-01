@@ -184,38 +184,41 @@ export function NotificationBell() {
                 {error ?? "কোনো নোটিফিকেশন নেই।"}
               </div>
             ) : (
-              items.map((item) => (
-                <NotificationRow
-                  key={item.id}
-                  item={item}
-                  onSelect={onSelect}
-                />
-              ))
+              <>
+                {items.map((item) => (
+                  <NotificationRow
+                    key={item.id}
+                    item={item}
+                    onSelect={onSelect}
+                  />
+                ))}
+                {/* Lives inside the scroll area so it only appears once the
+                    user has scrolled to the end of the loaded notifications. */}
+                {(hasNext || error) && (
+                  <div className="px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                    {error && (
+                      <p className="text-[12.5px] text-error text-center mb-2">
+                        {error}
+                      </p>
+                    )}
+                    {hasNext && (
+                      <button
+                        type="button"
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        className="w-full flex items-center justify-center gap-2 py-3 lg:py-2.5 rounded-lg bg-background text-[13.5px] font-semibold text-foreground hover:bg-navy-soft cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {loadingMore && (
+                          <RefreshIcon size={14} className="animate-spin" />
+                        )}
+                        {loadingMore ? "লোড হচ্ছে..." : "আরও দেখুন"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
-
-          {items.length > 0 && (hasNext || error) && (
-            <div className="px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] shrink-0">
-              {error && (
-                <p className="text-[12.5px] text-error text-center mb-2">
-                  {error}
-                </p>
-              )}
-              {hasNext && (
-                <button
-                  type="button"
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="w-full flex items-center justify-center gap-2 py-3 lg:py-2.5 rounded-lg bg-background text-[13.5px] font-semibold text-foreground hover:bg-navy-soft cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loadingMore && (
-                    <RefreshIcon size={14} className="animate-spin" />
-                  )}
-                  {loadingMore ? "লোড হচ্ছে..." : "আগের নোটিফিকেশন দেখুন"}
-                </button>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>
