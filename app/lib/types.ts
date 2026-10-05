@@ -35,8 +35,11 @@ export type StatsSummary = {
   // Modules where every chapter is completed and the exam is passed.
   completedModules: number;
   passedExams: number;
-  // Pitches (non-exam sessions) left this calendar month, out of a cap of 125.
+  // Pitches (non-exam sessions) left in the user's current 30-day cycle
+  // (counted from account creation), out of a cap of 125.
   pitchesRemainingThisMonth: number;
+  // When that 30-day cycle ends and the quota refills (ISO date).
+  pitchQuotaResetsAt: string;
   // Total pitches (non-exam sessions) the caller has ever participated in.
   totalPitchesEvaluated: number;
 };

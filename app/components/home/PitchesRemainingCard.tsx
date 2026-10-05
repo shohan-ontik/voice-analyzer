@@ -7,7 +7,7 @@ import { MicIcon } from "../icons";
 import { ProgressBar } from "../shared/ProgressBar";
 
 // Mirrors the API's monthly cap on non-exam pitch sessions.
-const MONTHLY_PITCH_LIMIT = 125;
+export const MONTHLY_PITCH_LIMIT = 125;
 
 export function PitchesRemainingCard() {
   const [pitchesRemaining, setPitchesRemaining] = useState<number | null>(null);

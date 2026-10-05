@@ -3,8 +3,29 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authFetch } from "../lib/clientFetch";
+import { formatBnDayMonth } from "../lib/formatDate";
 import type { StatsSummary } from "../lib/types";
+import { MONTHLY_PITCH_LIMIT } from "./home/PitchesRemainingCard";
 import { MicIcon, SparkleIcon, XIcon } from "./icons";
+import { ProgressBar } from "./shared/ProgressBar";
+
+type QuotaTone = { icon: string; number: string; bar: string; card: string };
+
+// Full/healthy quota is navy, under 50% is yellowish, exhausted is reddish.
+function getQuotaTone(remaining: number | null): QuotaTone {
+  if (remaining === null) {
+    return { icon: "bg-navy-soft text-navy", number: "text-navy", bar: "bg-navy", card: "border-border bg-background-elevated" };
+  }
+  if (remaining <= 0) {
+    return { icon: "bg-error-soft text-error", number: "text-error", bar: "bg-error", card: "border-error/30 bg-error-soft/40" };
+  }
+  if (remaining / MONTHLY_PITCH_LIMIT < 0.5) {
+    return { icon: "bg-warning-soft text-warning-ink", number: "text-warning-ink", bar: "bg-warning", card: "border-warning/40 bg-warning-soft/50" };
+  }
+  return { icon: "bg-navy-soft text-navy", number: "text-navy", bar: "bg-navy", card: "border-border bg-background-elevated" };
+}
+
+const formatBnNumber = (n: number) => n.toLocaleString("bn-BD");
 
 export function PracticeAgainButton({
   href,
@@ -13,6 +34,7 @@ export function PracticeAgainButton({
 }: Readonly<{ href: string; label?: string; className?: string }>) {
   const [open, setOpen] = useState(false);
   const [pitchesRemaining, setPitchesRemaining] = useState<number | null>(null);
+  const [resetsAt, setResetsAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || pitchesRemaining !== null) return;
@@ -20,7 +42,11 @@ export function PracticeAgainButton({
     authFetch("/api/sessions/stats")
       .then(async (res) => {
         const body = await res.json();
-        if (res.ok && !cancelled) setPitchesRemaining((body as StatsSummary).pitchesRemainingThisMonth);
+        if (res.ok && !cancelled) {
+          const stats = body as StatsSummary;
+          setPitchesRemaining(stats.pitchesRemainingThisMonth);
+          setResetsAt(stats.pitchQuotaResetsAt);
+        }
       })
       .catch(() => {});
     return () => {
@@ -37,6 +63,9 @@ export function PracticeAgainButton({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  const tone = getQuotaTone(pitchesRemaining);
+  const remainingPercent = pitchesRemaining === null ? 0 : (pitchesRemaining / MONTHLY_PITCH_LIMIT) * 100;
+
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className}>
@@ -46,11 +75,11 @@ export function PracticeAgainButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center px-2 py-4 sm:p-4 bg-black/60"
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-[360px] rounded-2xl bg-background-elevated p-6 flex flex-col items-center gap-4 text-center"
+            className="w-full max-w-[560px] rounded-2xl bg-background-elevated p-4 sm:p-6 flex flex-col items-center gap-4 text-center"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -62,19 +91,25 @@ export function PracticeAgainButton({
               <XIcon size={18} />
             </button>
 
-            <div className="w-14 h-14 rounded-full bg-navy-soft text-navy flex items-center justify-center -mt-4">
-              <MicIcon size={22} />
+            <div className={`w-full rounded-2xl border p-4 flex flex-col gap-3 text-left -mt-4 ${tone.card}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tone.icon}`}>
+                  <MicIcon size={18} />
+                </div>
+                <div className="flex flex-col">
+                  <h2 className="text-[13px] text-foreground-muted">এই মাসে বাকি পিচ</h2>
+                  <div className={`font-display font-bold text-[26px] leading-tight ${tone.number}`}>
+                    {pitchesRemaining === null ? "…" : formatBnNumber(pitchesRemaining)}
+                    <span className="text-[13px] font-semibold text-foreground-muted">
+                      {" "}
+                      / {formatBnNumber(MONTHLY_PITCH_LIMIT)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <ProgressBar percent={remainingPercent} fillClassName={tone.bar} size="md" />
+              {resetsAt && <p className="text-[12px] text-foreground-muted">{formatBnDayMonth(resetsAt)} রিসেট হবে</p>}
             </div>
-
-            <h2 className="font-display font-bold text-[17px] text-foreground">আপনার বাকি পিচ</h2>
-
-            <div className="font-display font-bold text-[40px] text-navy leading-none">
-              {pitchesRemaining ?? "…"}
-            </div>
-
-            <p className="text-[13px] text-foreground-muted leading-relaxed">
-              এই মাসে আপনার আর {pitchesRemaining ?? "…"}টি পিচ রেকর্ড করার সুযোগ আছে।
-            </p>
 
             <Link
               href={href}

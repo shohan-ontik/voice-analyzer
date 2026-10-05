@@ -46,3 +46,15 @@ export function formatBnRelative(iso: string, now = Date.now()) {
   if (!match) return bnRelativeFormatter.format(0, "second");
   return bnRelativeFormatter.format(Math.round(diffSec / match.seconds), match.unit);
 }
+
+const bnDayMonthFormatter = new Intl.DateTimeFormat("bn-BD", {
+  day: "numeric",
+  month: "long",
+  timeZone: "Asia/Dhaka",
+});
+
+// "2026-11-16T05:08:40.468Z" -> "১৬ নভেম্বর"
+export function formatBnDayMonth(iso: string) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : bnDayMonthFormatter.format(date);
+}
