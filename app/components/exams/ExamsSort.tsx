@@ -1,19 +1,29 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
-import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshIcon, SortIcon } from "../icons";
+import type { KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import type { ExamSortBy, SortOrder } from "../../lib/types";
+import { RefreshIcon, SortIcon } from "../icons";
 
-const SORT_OPTIONS: { sortBy: ExamSortBy; sortOrder: SortOrder; label: string }[] = [
+const SORT_OPTIONS: {
+  sortBy: ExamSortBy;
+  sortOrder: SortOrder;
+  label: string;
+}[] = [
   { sortBy: "order", sortOrder: "asc", label: "মডিউল ক্রম (ঊর্ধ্বক্রম)" },
   { sortBy: "order", sortOrder: "desc", label: "মডিউল ক্রম (অধঃক্রম)" },
   { sortBy: "dueDate", sortOrder: "asc", label: "ডিউ ডেট (ঊর্ধ্বক্রম)" },
   { sortBy: "dueDate", sortOrder: "desc", label: "ডিউ ডেট (অধঃক্রম)" },
 ];
 
-export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder: SortOrder }) {
+export function ExamsSort({
+  sortBy,
+  sortOrder,
+}: {
+  sortBy: ExamSortBy;
+  sortOrder: SortOrder;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const listboxId = useId();
@@ -22,7 +32,9 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
 
   const selectedIndex = Math.max(
     0,
-    SORT_OPTIONS.findIndex((o) => o.sortBy === sortBy && o.sortOrder === sortOrder)
+    SORT_OPTIONS.findIndex(
+      (o) => o.sortBy === sortBy && o.sortOrder === sortOrder,
+    ),
   );
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(selectedIndex);
@@ -48,7 +60,10 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
     if (index === selectedIndex) return;
     const option = SORT_OPTIONS[index];
     startTransition(() => {
-      router.replace(`/exams?sortBy=${option.sortBy}&sortOrder=${option.sortOrder}`, { scroll: false });
+      router.replace(
+        `/exams?sortBy=${option.sortBy}&sortOrder=${option.sortOrder}`,
+        { scroll: false },
+      );
     });
   };
 
@@ -67,7 +82,9 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
         break;
       case "ArrowUp":
         e.preventDefault();
-        setActiveIndex((i) => (i - 1 + SORT_OPTIONS.length) % SORT_OPTIONS.length);
+        setActiveIndex(
+          (i) => (i - 1 + SORT_OPTIONS.length) % SORT_OPTIONS.length,
+        );
         break;
       case "Home":
         e.preventDefault();
@@ -90,7 +107,7 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
   };
 
   return (
-    <div className="px-4 pb-5 lg:px-10 flex items-center justify-end gap-2">
+    <div className="px-4 pb-5 lg:px-10 flex items-center justify-end gap-2 mt-5">
       <div ref={containerRef} className="relative">
         <button
           ref={buttonRef}
@@ -100,7 +117,9 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={listboxId}
-          aria-activedescendant={open ? `${listboxId}-${activeIndex}` : undefined}
+          aria-activedescendant={
+            open ? `${listboxId}-${activeIndex}` : undefined
+          }
           onClick={() => (open ? setOpen(false) : openMenu())}
           onKeyDown={onKeyDown}
           disabled={isPending}
@@ -129,7 +148,11 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
                   onPointerEnter={() => setActiveIndex(index)}
                   onClick={() => select(index)}
                   className={`cursor-pointer px-5 py-3.5 text-[14.5px] ${
-                    selected ? "bg-navy text-navy-ink" : active ? "bg-navy-soft text-foreground" : "text-foreground"
+                    selected
+                      ? "bg-navy text-navy-ink"
+                      : active
+                        ? "bg-navy-soft text-foreground"
+                        : "text-foreground"
                   }`}
                 >
                   {option.label}
@@ -139,7 +162,12 @@ export function ExamsSort({ sortBy, sortOrder }: { sortBy: ExamSortBy; sortOrder
           </ul>
         )}
       </div>
-      {isPending && <RefreshIcon size={14} className="animate-spin text-foreground-muted order-first" />}
+      {isPending && (
+        <RefreshIcon
+          size={14}
+          className="animate-spin text-foreground-muted order-first"
+        />
+      )}
     </div>
   );
 }

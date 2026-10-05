@@ -82,19 +82,9 @@ export function ExamCard({
         )}
       </div>
 
-      <div>
-        <div className="font-display font-bold text-[17px] text-foreground mb-1">
-          {exam.title}
-        </div>
-        <div className="text-[13px] font-semibold text-navy mb-2">
-          {exam.moduleLabel}
-        </div>
-        <p className="text-[13px] text-foreground-muted leading-relaxed line-clamp-2">
-          {exam.scenario}
-        </p>
+      <div className="font-display font-bold text-[17px] text-foreground">
+        {exam.title}
       </div>
-
-      <div className="h-px bg-border" />
 
       <div className="flex items-center justify-between mt-auto pt-2 flex-wrap gap-3">
         <span className="text-[12.5px] text-foreground-muted">

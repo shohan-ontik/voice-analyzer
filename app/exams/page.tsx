@@ -21,7 +21,12 @@ export default async function ExamsPage({
   let exams: ExamListItem[];
   let total: number;
   try {
-    const result = await listExams(token, { page: 1, pageSize: EXAMS_PAGE_SIZE, sortBy, sortOrder });
+    const result = await listExams(token, {
+      page: 1,
+      pageSize: EXAMS_PAGE_SIZE,
+      sortBy,
+      sortOrder,
+    });
     exams = result.items;
     total = result.total;
   } catch (err) {
@@ -31,15 +36,6 @@ export default async function ExamsPage({
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      <div className="px-4 pt-6 pb-6 lg:px-10 lg:pt-10">
-        <h1 className="font-display font-bold text-[22px] lg:text-[28px] text-foreground mb-1.5">
-          মডিউল এক্সামসমূহ
-        </h1>
-        <p className="text-[13.5px] lg:text-[14.5px] text-foreground-muted max-w-[560px]">
-          বাস্তবসম্মত ক্লায়েন্ট সিচুয়েশনে আপনার স্কিল প্রমাণ করুন। পাস মার্ক ৮০%।
-        </p>
-      </div>
-
       <ExamsSort sortBy={sortBy} sortOrder={sortOrder} />
 
       <ExamsList
