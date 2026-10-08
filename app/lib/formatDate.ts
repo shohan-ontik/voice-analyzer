@@ -58,3 +58,15 @@ export function formatBnDayMonth(iso: string) {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : bnDayMonthFormatter.format(date);
 }
+
+const bnDateTimeFormatter = new Intl.DateTimeFormat("bn-BD", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Dhaka",
+});
+
+// "2026-11-16T05:08:40.468Z" -> "১৬ নভে, ২০২৬, ১১:০৮ AM"
+export function formatBnDateTime(iso: string) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : bnDateTimeFormatter.format(date);
+}

@@ -4,12 +4,9 @@ import { BackHeader } from "../../components/BackHeader";
 import { ScoreCircle } from "../../components/history/ScoreCircle";
 import { PracticeAgainButton } from "../../components/PracticeAgainButton";
 import { ApiClientError, getOwnPracticeSession } from "../../lib/apiClient";
+import { formatBnDateTime } from "../../lib/formatDate";
 import { getSessionToken } from "../../lib/session";
 import type { PracticeSessionRecord } from "../../lib/types";
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-}
 
 // Where "Practice Again" should send the user: back to the specific chapter's
 // roleplay briefing or the module exam briefing this session came from, or
@@ -45,8 +42,8 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="flex-1 flex flex-col bg-background">
       <BackHeader
-        title={`${session.topicName} — Results`}
-        subtitle={formatDate(session.createdAt)}
+        title={`${session.topicName} — ফলাফল`}
+        subtitle={formatBnDateTime(session.createdAt)}
         backHref="/history"
       />
 
@@ -57,7 +54,7 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
           <div className="text-center">
             <div className="font-display font-bold text-[19px] mb-1.5 text-foreground">{session.verdict}</div>
             <div className="text-[13.5px] text-foreground-muted leading-relaxed">
-              Practiced {formatDate(session.createdAt)}.
+              অনুশীলন করা হয়েছে: {formatBnDateTime(session.createdAt)}।
             </div>
           </div>
 

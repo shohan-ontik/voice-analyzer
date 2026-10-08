@@ -132,9 +132,7 @@ function HomeContent() {
                   href={`/modules/${continueModule.slug}`}
                   className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px]"
                 >
-                  {continueChaptersRemaining > 0
-                    ? "রিজিউম করুন"
-                    : "পরীক্ষা দিন"}
+                  রিজিউম করুন
                   <PlayIcon size={12} />
                 </Link>
               </div>
@@ -179,7 +177,8 @@ function HomeContent() {
 
           <button
             type="button"
-            onClick={() => router.push("/exams")}
+            disabled={continueChaptersRemaining > 0}
+            onClick={() => router.push(`/modules/${continueModule?.slug}/exam`)}
             className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-navy text-warning font-display font-semibold text-sm cursor-pointer"
           >
             <AwardIcon size={16} />

@@ -79,14 +79,12 @@ export default function ProfilePage() {
     };
   }, []);
 
-  const trainingProgress = modules?.map((m) => {
-    const total = m.chapterCount;
-    return {
-      skill: m.title,
-      percent:
-        total > 0 ? Math.round((m.completedChapterCount / total) * 100) : 0,
-    };
-  });
+  // Use the server-derived progressPercent (chapters 80% + exam 20%) so this
+  // matches the module detail page.
+  const trainingProgress = modules?.map((m) => ({
+    skill: m.title,
+    percent: m.progressPercent,
+  }));
 
   return (
     <div className="flex-1 flex flex-col bg-background">

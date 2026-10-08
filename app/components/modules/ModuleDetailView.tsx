@@ -77,8 +77,8 @@ export function ModuleDetailView({
 
             <div className="h-px bg-border my-5" />
 
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              <div className="flex-1">
+            <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+              <div className="flex-1 lg:pb-1">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-[12.5px] font-semibold text-foreground-muted">
                     মডিউলের সার্বিক অগ্রগতি
@@ -87,7 +87,11 @@ export function ModuleDetailView({
                     {progressPercent}%
                   </span>
                 </div>
-                <ProgressBar percent={progressPercent} fillClassName={meta.barClass} size="md" />
+                <ProgressBar
+                  percent={progressPercent}
+                  fillClassName={meta.barClass}
+                  size="md"
+                />
               </div>
 
               <div className="flex items-center gap-4 text-[12.5px] text-foreground-muted shrink-0">
