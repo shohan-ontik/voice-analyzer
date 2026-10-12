@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeftIcon,
   AwardIcon,
@@ -9,11 +9,12 @@ import {
   SparkleIcon,
   TargetIcon,
 } from "../../../components/icons";
-import { getExamStatus } from "../../../lib/moduleProgress";
+import { findExam, getExamStatus } from "../../../lib/moduleProgress";
 import { useModule } from "../../../lib/useModules";
 
 export default function ModuleExamPage() {
   const { id } = useParams<{ id: string }>();
+  const examSlug = useSearchParams().get("exam");
   const { trainingModule, error, loading } = useModule(id);
 
   if (loading) {
@@ -40,8 +41,24 @@ export default function ModuleExamPage() {
     );
   }
 
-  const status = getExamStatus(trainingModule);
-  const exam = trainingModule.exam;
+  const exam = findExam(trainingModule, examSlug);
+  if (!exam) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">
+          এই মডিউলে কোনো পরীক্ষা নেই।
+        </p>
+        <Link
+          href={`/modules/${trainingModule.slug}`}
+          className="text-[13px] font-semibold text-navy cursor-pointer"
+        >
+          মডিউলে ফিরে যান
+        </Link>
+      </div>
+    );
+  }
+
+  const status = getExamStatus(trainingModule, exam);
 
   if (status === "locked") {
     return (
@@ -112,7 +129,7 @@ export default function ModuleExamPage() {
 
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-border">
             <Link
-              href={`/modules/${trainingModule.slug}/exam/record`}
+              href={`/modules/${trainingModule.slug}/exam/record?exam=${encodeURIComponent(exam.slug)}`}
               className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl bg-navy text-navy-ink font-display font-semibold text-[13.5px] cursor-pointer"
             >
               <SparkleIcon size={15} />

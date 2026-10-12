@@ -32,7 +32,7 @@ export type StatsSummary = {
   totalSessions: number;
   // Average overallScore across every session the caller has ever recorded.
   averageScore: number | null;
-  // Modules where every chapter is completed and the exam is passed.
+  // Modules where every chapter is completed and all its exams are passed.
   completedModules: number;
   passedExams: number;
   // Pitches (non-exam sessions) left in the user's current 30-day cycle
@@ -120,6 +120,8 @@ export type ModuleExam = {
   slug: string;
   title: string;
   moduleLabel: string;
+  // Position within the module's exams (0-based).
+  order: number;
   scenario: string;
   passMark: number;
   dueDate: string | null;
@@ -129,7 +131,7 @@ export type ModuleExam = {
 
 // `progressPercent` is derived server-side: chapters make up 80% (split
 // evenly across chapters, then across each chapter's materials) and the
-// final exam makes up the remaining 20%, earned once it's passed.
+// exams share the remaining 20% evenly (each earns its share once passed).
 export type TrainingModule = {
   id: string;
   slug: string;
@@ -138,7 +140,7 @@ export type TrainingModule = {
   thumbnailUrl: string | null;
   order: number;
   chapters: ModuleChapter[];
-  exam: ModuleExam;
+  exams: ModuleExam[];
   chapterCount: number;
   completedChapterCount: number;
   progressPercent: number;

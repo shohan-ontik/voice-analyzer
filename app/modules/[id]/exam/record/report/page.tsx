@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowLeftIcon,
@@ -19,10 +19,13 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export default function ModuleExamReportPage() {
   const { id } = useParams<{ id: string }>();
-  const [report] = useState(() => readCachedExamReport(examReportCacheKey(id)));
+  const examSlug = useSearchParams().get("exam");
+  const [report] = useState(() =>
+    readCachedExamReport(examReportCacheKey(id, examSlug)),
+  );
 
   const moduleHref = `/modules/${id}`;
-  const examRecordHref = `${moduleHref}/exam/record`;
+  const examRecordHref = `${moduleHref}/exam/record${examSlug ? `?exam=${encodeURIComponent(examSlug)}` : ""}`;
 
   if (!report) {
     return (

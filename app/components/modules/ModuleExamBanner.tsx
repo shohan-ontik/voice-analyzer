@@ -45,9 +45,10 @@ export function ModuleExamBanner({
   const locked = status === "locked";
   const passed = status === "passed";
   const resultBadge = RESULT_BADGE[status];
+  const examQuery = `?exam=${encodeURIComponent(exam.slug)}`;
   const ctaHref = passed
-    ? `/modules/${moduleSlug}/exam/record/report`
-    : `/modules/${moduleSlug}/exam`;
+    ? `/modules/${moduleSlug}/exam/record/report${examQuery}`
+    : `/modules/${moduleSlug}/exam${examQuery}`;
 
   return (
     <div className="rounded-2xl border border-accent/30 bg-gradient-to-r from-accent-soft to-background-elevated p-5 flex flex-col sm:flex-row sm:items-center gap-4">

@@ -13,8 +13,8 @@ export type ExamReport = {
   passed: boolean;
 };
 
-export function examReportCacheKey(moduleSlug: string) {
-  return `exam-report:${moduleSlug}`;
+export function examReportCacheKey(moduleSlug: string, examSlug: string | null) {
+  return `exam-report:${moduleSlug}:${examSlug ?? ""}`;
 }
 
 export function readCachedExamReport(key: string): ExamReport | null {

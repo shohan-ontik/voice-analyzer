@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
@@ -15,7 +15,7 @@ import {
   examReportCacheKey,
   writeCachedExamReport,
 } from "../../../../lib/examReportCache";
-import { getExamStatus } from "../../../../lib/moduleProgress";
+import { findExam, getExamStatus } from "../../../../lib/moduleProgress";
 import { useModule } from "../../../../lib/useModules";
 
 type Status = "requesting" | "countdown" | "recording" | "stopped";
@@ -39,6 +39,7 @@ function formatTime(totalSeconds: number) {
 export default function ModuleExamRecordPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const examSlug = useSearchParams().get("exam");
   const { trainingModule, error: loadError, loading } = useModule(id);
 
   const [status, setStatus] = useState<Status>("requesting");
@@ -161,11 +162,12 @@ export default function ModuleExamRecordPage() {
 
   async function submitExam() {
     if (!blobRef.current || !trainingModule) return;
+    const exam = findExam(trainingModule, examSlug);
+    if (!exam) return;
     setSubmitting(true);
     setSubmitError(null);
 
     try {
-      const exam = trainingModule.exam;
       const formData = new FormData();
       formData.append("file", blobRef.current, "recording.webm");
       formData.append("mode", "audio");
@@ -202,14 +204,16 @@ export default function ModuleExamRecordPage() {
         }),
       }).catch(() => {});
 
-      writeCachedExamReport(examReportCacheKey(trainingModule.slug), {
+      writeCachedExamReport(examReportCacheKey(trainingModule.slug, examSlug), {
         result,
         moduleTitle: trainingModule.title,
         examTitle: exam.title,
         passMark: exam.passMark,
         passed,
       });
-      router.push(`/modules/${trainingModule.slug}/exam/record/report`);
+      router.push(
+        `/modules/${trainingModule.slug}/exam/record/report${examSlug ? `?exam=${encodeURIComponent(examSlug)}` : ""}`,
+      );
     } catch (err) {
       setSubmitError(
         err instanceof Error
@@ -244,7 +248,8 @@ export default function ModuleExamRecordPage() {
     );
   }
 
-  if (getExamStatus(trainingModule) === "locked") {
+  const exam = findExam(trainingModule, examSlug);
+  if (!exam || getExamStatus(trainingModule, exam) === "locked") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
         <p className="text-[13.5px] text-foreground-muted">
@@ -261,7 +266,6 @@ export default function ModuleExamRecordPage() {
   }
 
   const moduleHref = `/modules/${trainingModule.slug}`;
-  const exam = trainingModule.exam;
 
   return (
     <div className="flex-1 flex flex-col bg-background">

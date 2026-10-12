@@ -53,7 +53,6 @@ export function ModuleDetailView({
 
   const meta = MODULE_STATUS_META[getModuleStatus(trainingModule)];
   const { chapterCount: total, progressPercent } = trainingModule;
-  const examStatus = getExamStatus(trainingModule);
 
   return (
     <>
@@ -101,7 +100,7 @@ export function ModuleDetailView({
                 </span>
                 <span className="flex items-center gap-1.5">
                   <AwardIcon size={14} />
-                  ১টি চূড়ান্ত পরীক্ষা
+                  {trainingModule.exams.length}টি চূড়ান্ত পরীক্ষা
                 </span>
               </div>
             </div>
@@ -161,11 +160,14 @@ export function ModuleDetailView({
             );
           })}
 
-          <ModuleExamBanner
-            exam={trainingModule.exam}
-            status={examStatus}
-            moduleSlug={trainingModule.slug}
-          />
+          {trainingModule.exams.map((exam) => (
+            <ModuleExamBanner
+              key={exam.id}
+              exam={exam}
+              status={getExamStatus(trainingModule, exam)}
+              moduleSlug={trainingModule.slug}
+            />
+          ))}
         </div>
       </div>
     </>

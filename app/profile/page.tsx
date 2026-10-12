@@ -79,7 +79,7 @@ export default function ProfilePage() {
     };
   }, []);
 
-  // Use the server-derived progressPercent (chapters 80% + exam 20%) so this
+  // Use the server-derived progressPercent (chapters 80% + exams 20%) so this
   // matches the module detail page.
   const trainingProgress = modules?.map((m) => ({
     skill: m.title,
