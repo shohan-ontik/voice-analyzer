@@ -1,24 +1,6 @@
 // Static placeholder data for the redesigned dashboard home. Stands in for
 // the future LMS-style progress/training API — no network calls here yet.
 
-export type DashboardUser = {
-  firstName: string;
-  fullName: string;
-  employeeId: string;
-  role: string;
-  roleWithCode: string;
-  team: string;
-};
-
-export const dashboardUser: DashboardUser = {
-  firstName: "নুরুল",
-  fullName: "নুরুল ইসলাম (Nurul Islam)",
-  employeeId: "EMP-1048",
-  role: "সেলস অফিসার",
-  roleWithCode: "সেলস অফিসার (SO)",
-  team: "Enterprise Sales",
-};
-
 export type UpcomingExam = {
   dueDate: string;
   title: string;

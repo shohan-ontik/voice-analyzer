@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { dashboardUser } from "../lib/dashboardData";
+import { authFetch } from "../lib/clientFetch";
+import type { AppUser } from "../lib/types";
 import { ChevronDownIcon, LogoutIcon, SparkleIcon, UserIcon } from "./icons";
 import { NotificationBell } from "./notifications/NotificationBell";
 
@@ -19,6 +20,20 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    authFetch("/api/auth/me")
+      .then(async (res) => {
+        const body = await res.json();
+        if (res.ok && !cancelled) setUser(body);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -59,14 +74,14 @@ export function TopBar({ breadcrumb }: { breadcrumb: string }) {
             className="flex items-center gap-2.5 pl-1 pr-1 py-1 rounded-full hover:bg-background cursor-pointer"
           >
             <div className="w-8 h-8 lg:w-[34px] lg:h-[34px] rounded-full bg-teal-soft flex items-center justify-center font-display font-semibold text-[12px] lg:text-[13px] text-teal shrink-0">
-              {initials(dashboardUser.fullName)}
+              {user ? initials(user.name) : null}
             </div>
             <div className="text-left hidden lg:block">
               <div className="text-[13px] font-semibold text-foreground leading-tight">
-                {dashboardUser.fullName}
+                {user?.name ?? "\u00A0"}
               </div>
               <div className="text-[11.5px] text-foreground-muted leading-tight">
-                {dashboardUser.employeeId}
+                {user?.username ?? "\u00A0"}
               </div>
             </div>
             <ChevronDownIcon

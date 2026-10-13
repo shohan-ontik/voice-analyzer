@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { dashboardUser } from "../lib/dashboardData";
 import { SparkleIcon, UserIcon } from "./icons";
 import { isNavItemActive, NAV_ITEMS } from "./navItems";
+
+// Placeholder until the backend's AppUser carries a role title.
+const ROLE_LABEL = "সেলস অফিসার (SO)";
 
 export function Sidebar({ pathname }: { pathname: string }) {
   return (
@@ -27,7 +29,7 @@ export function Sidebar({ pathname }: { pathname: string }) {
         <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-navy-soft border border-navy/15">
           <UserIcon size={15} className="text-navy shrink-0" />
           <span className="font-bold text-[13.5px] text-navy">
-            {dashboardUser.roleWithCode}
+            {ROLE_LABEL}
           </span>
         </div>
       </div>
