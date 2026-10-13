@@ -5,7 +5,8 @@
 
 import type { LearningMaterial, ModuleExam, TrainingModule, TrainingModuleSummary } from "./types";
 
-export type ModuleStatus = "completed" | "in_progress" | "not_started";
+export const MODULE_STATUSES = ["completed", "in_progress", "not_started"] as const;
+export type ModuleStatus = (typeof MODULE_STATUSES)[number];
 export type ExamStatus = "passed" | "failed" | "ready" | "locked";
 export type ChapterStatus = "completed" | "in_progress" | "unlocked" | "locked";
 export type MaterialStatus = "completed" | "unlocked" | "locked";
@@ -22,6 +23,10 @@ export function getChapterProgress(trainingModule: TrainingModule): { completed:
 // (a chapter fully done, or even a single material within one) counts as
 // "in_progress". Works for both the list summary and the full detail shape,
 // since both carry progressPercent.
+export function isModuleStatus(value: string): value is ModuleStatus {
+  return (MODULE_STATUSES as readonly string[]).includes(value);
+}
+
 export function getModuleStatus(trainingModule: { progressPercent: number }): ModuleStatus {
   if (trainingModule.progressPercent >= 100) return "completed";
   if (trainingModule.progressPercent <= 0) return "not_started";

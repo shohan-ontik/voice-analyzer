@@ -14,6 +14,7 @@ import type {
   TrainingModuleSummary,
 } from "./types";
 import type { AnalysisCategory, TranscriptSegment } from "./analysis";
+import type { ModuleStatus } from "./moduleProgress";
 import { clearSessionCookie } from "./session";
 
 // Read lazily rather than at module load: `next build` (e.g. inside Docker,
@@ -139,12 +140,17 @@ export function changePassword(token: string, input: { currentPassword: string; 
   return request<{ success: true }>("/auth/me/password", { method: "PATCH", token, body: input });
 }
 
-export function listModules(token: string, params: { page?: number; pageSize?: number } = {}) {
+export function listModules(
+  token: string,
+  params: { page?: number; pageSize?: number; q?: string; status?: ModuleStatus } = {}
+) {
   return request<{ items: TrainingModuleSummary[]; total: number }>("/modules", {
     token,
     searchParams: {
       page: params.page?.toString(),
       pageSize: params.pageSize?.toString(),
+      q: params.q,
+      status: params.status,
     },
   });
 }

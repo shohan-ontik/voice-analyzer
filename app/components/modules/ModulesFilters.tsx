@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { authFetch } from "../../lib/clientFetch";
-import { getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
+import type { ModuleStatus } from "../../lib/moduleProgress";
 import type { TrainingModuleSummary } from "../../lib/types";
 import { RefreshIcon, SearchIcon } from "../icons";
 import { ModuleCard } from "./ModuleCard";
@@ -26,6 +26,7 @@ export function ModulesFilters({
   pageSize: number;
 }>) {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const [modules, setModules] = useState(initialModules);
@@ -34,46 +35,89 @@ export function ModulesFilters({
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Filtering happens server-side so `total` only counts matching modules —
+  // filtering the loaded pages here would leave "see more" visible even when
+  // no further module matches.
   const hasMore = modules.length < total;
 
-  // Mirrors `page` so the refresh effect below can read it without re-running.
-  const pageRef = useRef(1);
+  const trimmedQuery = debouncedQuery.trim();
+  const listKey = `${filter}|${trimmedQuery}`;
+  // The filter/search the shown `modules` belong to; while it lags behind
+  // `listKey`, the list for the new filter is still loading.
+  const [loadedKey, setLoadedKey] = useState(listKey);
+  const loadedKeyRef = useRef(listKey);
+  const refreshing = loadedKey !== listKey;
 
-  // Coming back via the browser's back button restores this page from the
-  // client Router Cache, so `initialModules` can predate progress made on a
-  // module page (revalidatePath from an API route can't reach that cache).
-  // Silently refetch everything loaded so far to pick up the latest progress.
+  // Bumped on every filter/search change so a slow response for an older
+  // filter (first page or "see more") can't overwrite the current list.
+  const requestIdRef = useRef(0);
+
+  const modulesUrl = (pageNumber: number) => {
+    const params = new URLSearchParams({
+      page: String(pageNumber),
+      pageSize: String(pageSize),
+    });
+    if (trimmedQuery) params.set("q", trimmedQuery);
+    if (filter !== "all") params.set("status", filter);
+    return `/api/modules?${params}`;
+  };
+
   useEffect(() => {
-    let cancelled = false;
+    const timeout = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  // Refetches the first page whenever the filter or search changes. This also
+  // runs on mount: coming back via the browser's back button restores this
+  // page from the client Router Cache, so `initialModules` can predate
+  // progress made on a module page (revalidatePath from an API route can't
+  // reach that cache).
+  useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    const markLoaded = () => {
+      loadedKeyRef.current = listKey;
+      setLoadedKey(listKey);
+    };
     (async () => {
       try {
-        const res = await authFetch(
-          `/api/modules?page=1&pageSize=${pageSize * pageRef.current}`,
-        );
-        if (!res.ok) return;
+        const res = await authFetch(modulesUrl(1));
         const body = await res.json();
-        if (cancelled) return;
+        if (requestId !== requestIdRef.current) return;
+        if (!res.ok)
+          throw new Error(body?.error?.message ?? "মডিউল লোড করা যায়নি।");
         setModules(body.items as TrainingModuleSummary[]);
         setTotal(body.total as number);
-      } catch {
-        // Keep showing the server-rendered list.
+        setPage(1);
+        setLoadError(null);
+        markLoaded();
+      } catch (err) {
+        if (requestId !== requestIdRef.current) return;
+        // A failed silent refresh keeps the list it was refreshing; anything
+        // else would leave another filter's modules on screen.
+        if (loadedKeyRef.current === listKey) return;
+        setModules([]);
+        setTotal(0);
+        setPage(1);
+        setLoadError(
+          err instanceof Error ? err.message : "মডিউল লোড করা যায়নি।",
+        );
+        markLoaded();
       }
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, [pageSize]);
+    // modulesUrl only depends on listKey and pageSize.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listKey, pageSize]);
 
   const loadMore = async () => {
-    if (loadingMore) return;
+    if (loadingMore || refreshing) return;
+    const requestId = requestIdRef.current;
     setLoadingMore(true);
     setLoadError(null);
     const nextPage = page + 1;
     try {
-      const res = await authFetch(
-        `/api/modules?page=${nextPage}&pageSize=${pageSize}`,
-      );
+      const res = await authFetch(modulesUrl(nextPage));
       const body = await res.json();
+      if (requestId !== requestIdRef.current) return;
       if (!res.ok)
         throw new Error(body?.error?.message ?? "মডিউল লোড করা যায়নি।");
       setModules((prev) => [
@@ -82,8 +126,8 @@ export function ModulesFilters({
       ]);
       setTotal(body.total as number);
       setPage(nextPage);
-      pageRef.current = nextPage;
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setLoadError(
         err instanceof Error ? err.message : "মডিউল লোড করা যায়নি।",
       );
@@ -91,14 +135,6 @@ export function ModulesFilters({
       setLoadingMore(false);
     }
   };
-
-  const filteredModules = modules.filter((m) => {
-    const matchesFilter = filter === "all" || getModuleStatus(m) === filter;
-    const matchesQuery =
-      query.trim() === "" ||
-      m.title.toLowerCase().includes(query.trim().toLowerCase());
-    return matchesFilter && matchesQuery;
-  });
 
   return (
     <>
@@ -148,19 +184,26 @@ export function ModulesFilters({
       </div>
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
-        {filteredModules.length === 0 ? (
-          <div className="text-center text-[13.5px] text-foreground-muted py-16">
-            কোনো মডিউল খুঁজে পাওয়া যায়নি।
-          </div>
+        {modules.length === 0 ? (
+          !refreshing &&
+          !loadError && (
+            <div className="text-center text-[13.5px] text-foreground-muted py-16">
+              কোনো মডিউল খুঁজে পাওয়া যায়নি।
+            </div>
+          )
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {filteredModules.map((m) => (
+          <div
+            className={`grid grid-cols-1 lg:grid-cols-2 gap-5 transition-opacity ${
+              refreshing ? "opacity-60" : ""
+            }`}
+          >
+            {modules.map((m) => (
               <ModuleCard key={m.id} module={m} />
             ))}
           </div>
         )}
 
-        {hasMore && (
+        {hasMore && !refreshing && (
           <div className="flex flex-col items-center gap-2 mt-8">
             <button
               type="button"
@@ -173,10 +216,13 @@ export function ModulesFilters({
               )}
               {loadingMore ? "লোড হচ্ছে..." : "আরও দেখুন"}
             </button>
-            {loadError && (
-              <p className="text-[12.5px] text-error">{loadError}</p>
-            )}
           </div>
+        )}
+
+        {loadError && (
+          <p className="text-center text-[12.5px] text-error mt-3">
+            {loadError}
+          </p>
         )}
       </div>
     </>
