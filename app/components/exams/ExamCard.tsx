@@ -1,3 +1,4 @@
+import { toBanglaDigits } from "@/app/lib/toBanglaDigits";
 import Link from "next/link";
 import { formatBnDate } from "../../lib/formatDate";
 import type { ExamStatus } from "../../lib/moduleProgress";
@@ -90,7 +91,7 @@ export function ExamCard({
         <span className="text-[12.5px] text-foreground-muted">
           পাস মার্ক:{" "}
           <span className="font-semibold text-foreground">
-            {exam.passMark}%
+            {toBanglaDigits(exam.passMark)}%
           </span>
         </span>
 

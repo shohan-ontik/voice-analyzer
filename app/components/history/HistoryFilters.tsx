@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { SearchIcon } from "../icons";
 import { authFetch } from "../../lib/clientFetch";
-import { HISTORY_PAGE_SIZE, toEvaluationReport, type EvaluationReport, type ReportKind } from "../../lib/reportsData";
+import {
+  HISTORY_PAGE_SIZE,
+  toEvaluationReport,
+  type EvaluationReport,
+  type ReportKind,
+} from "../../lib/reportsData";
 import type { PracticeSessionRecord } from "../../lib/types";
+import { SearchIcon } from "../icons";
 import { ReportRow } from "./ReportRow";
 
 type FilterKey = "all" | ReportKind;
@@ -18,10 +23,10 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 export function HistoryFilters({
   initialReports,
   total: initialTotal,
-}: {
+}: Readonly<{
   initialReports: EvaluationReport[];
   total: number;
-}) {
+}>) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [reports, setReports] = useState(initialReports);
@@ -35,9 +40,14 @@ export function HistoryFilters({
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const res = await authFetch(`/api/sessions?page=${nextPage}&pageSize=${HISTORY_PAGE_SIZE}`);
+      const res = await authFetch(
+        `/api/sessions?page=${nextPage}&pageSize=${HISTORY_PAGE_SIZE}`,
+      );
       if (res.ok) {
-        const body = (await res.json()) as { items: PracticeSessionRecord[]; total: number };
+        const body = (await res.json()) as {
+          items: PracticeSessionRecord[];
+          total: number;
+        };
         setReports((prev) => [...prev, ...body.items.map(toEvaluationReport)]);
         setTotal(body.total);
         setPage(nextPage);
@@ -49,7 +59,9 @@ export function HistoryFilters({
 
   const filteredEntries = reports.filter((r) => {
     const matchesFilter = filter === "all" || r.kind === filter;
-    const matchesQuery = query.trim() === "" || r.title.toLowerCase().includes(query.trim().toLowerCase());
+    const matchesQuery =
+      query.trim() === "" ||
+      r.title.toLowerCase().includes(query.trim().toLowerCase());
     return matchesFilter && matchesQuery;
   });
 
@@ -67,7 +79,10 @@ export function HistoryFilters({
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative">
-            <SearchIcon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
+            <SearchIcon
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground-muted"
+            />
             <input
               type="text"
               value={query}
@@ -98,7 +113,9 @@ export function HistoryFilters({
 
       <div className="px-4 pb-10 lg:px-10 lg:pb-12">
         {filteredEntries.length === 0 ? (
-          <div className="text-center text-[13.5px] text-foreground-muted py-16">কোনো রিপোর্ট খুঁজে পাওয়া যায়নি।</div>
+          <div className="text-center text-[13.5px] text-foreground-muted py-16">
+            কোনো রিপোর্ট খুঁজে পাওয়া যায়নি।
+          </div>
         ) : (
           <div className="flex flex-col gap-4">
             {filteredEntries.map((report) => (

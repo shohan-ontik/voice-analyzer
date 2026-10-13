@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authFetch } from "../../lib/clientFetch";
+import { toBanglaDigits } from "../../lib/toBanglaDigits";
 import type { NotificationItem, NotificationsPage } from "../../lib/types";
 import { BellIcon, RefreshIcon, XIcon } from "../icons";
 import { NotificationRow } from "./NotificationRow";
@@ -133,7 +134,7 @@ export function NotificationBell() {
     if (href) router.push(href);
   }
 
-  const badge = unreadCount > 99 ? "৯৯+" : unreadCount.toLocaleString("bn-BD");
+  const badge = unreadCount > 99 ? "৯৯+" : toBanglaDigits(unreadCount);
 
   return (
     <div className="lg:relative" ref={wrapperRef}>

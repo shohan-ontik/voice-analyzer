@@ -1,5 +1,6 @@
 "use client";
 
+import { toBanglaDigits } from "@/app/lib/toBanglaDigits";
 import type { ReactNode } from "react";
 import type { ChapterStatus } from "../../lib/moduleProgress";
 import type { ModuleChapter } from "../../lib/types";
@@ -85,17 +86,17 @@ export function ChapterAccordionItem({
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-[11.5px] sm:text-[12px] text-foreground-muted">
           <span className="flex items-center gap-1">
             <VideoIcon size={13} />
-            {videoCount}টি ভিডিও
+            {toBanglaDigits(videoCount)}টি ভিডিও
           </span>
           <span aria-hidden>•</span>
           <span className="flex items-center gap-1">
             <FileIcon size={13} />
-            {guideCount}টি গাইড
+            {toBanglaDigits(guideCount)}টি গাইড
           </span>
           <span aria-hidden>•</span>
           <span className="flex items-center gap-1">
             <HeadphoneIcon size={13} />
-            {audioCount}টি অডিও
+            {toBanglaDigits(audioCount)}টি অডিও
           </span>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { chapterHeadline } from "../../lib/chapterHeadline";
 import { authFetch } from "../../lib/clientFetch";
+import { toBanglaDigits } from "../../lib/toBanglaDigits";
 import {
   getChapterStatus,
   getCurrentChapter,
@@ -83,7 +84,7 @@ export function ModuleDetailView({
                     মডিউলের সার্বিক অগ্রগতি
                   </span>
                   <span className="text-[13px] font-bold text-navy">
-                    {progressPercent}%
+                    {toBanglaDigits(progressPercent)}%
                   </span>
                 </div>
                 <ProgressBar
@@ -96,11 +97,11 @@ export function ModuleDetailView({
               <div className="flex items-center gap-4 text-[12.5px] text-foreground-muted shrink-0">
                 <span className="flex items-center gap-1.5">
                   <BookIcon size={14} />
-                  {total}টি অধ্যায়
+                  {toBanglaDigits(total)}টি অধ্যায়
                 </span>
                 <span className="flex items-center gap-1.5">
                   <AwardIcon size={14} />
-                  {trainingModule.exams.length}টি চূড়ান্ত পরীক্ষা
+                  {toBanglaDigits(trainingModule.exams.length)}টি চূড়ান্ত পরীক্ষা
                 </span>
               </div>
             </div>

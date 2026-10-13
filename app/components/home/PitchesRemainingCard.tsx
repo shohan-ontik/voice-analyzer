@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authFetch } from "../../lib/clientFetch";
+import { toBanglaDigits } from "../../lib/toBanglaDigits";
 import type { StatsSummary } from "../../lib/types";
 import { MicIcon } from "../icons";
 import { ProgressBar } from "../shared/ProgressBar";
@@ -45,10 +46,10 @@ export function PitchesRemainingCard() {
           </div>
         </div>
         <div className="font-display font-bold text-[22px] text-navy shrink-0">
-          {pitchesRemaining ?? "…"}
+          {pitchesRemaining === null ? "…" : toBanglaDigits(pitchesRemaining)}
           <span className="text-[13px] font-semibold text-foreground-muted">
             {" "}
-            / {MONTHLY_PITCH_LIMIT}
+            / {toBanglaDigits(MONTHLY_PITCH_LIMIT)}
           </span>
         </div>
       </div>

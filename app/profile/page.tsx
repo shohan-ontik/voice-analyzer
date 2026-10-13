@@ -15,6 +15,7 @@ import {
 } from "../components/icons";
 import { authFetch } from "../lib/clientFetch";
 import { profileData } from "../lib/profileData";
+import { toBanglaDigits } from "../lib/toBanglaDigits";
 import {
   toEvaluationReport,
   type EvaluationReport,
@@ -133,7 +134,7 @@ export default function ProfilePage() {
                 <span aria-hidden>•</span>
                 <span className="flex items-center gap-1.5">
                   <CalendarIcon size={14} />
-                  জয়েনিং: {user ? formatDate(user.createdAt) : "…"}
+                  জয়েনিং: {user ? toBanglaDigits(formatDate(user.createdAt)) : "…"}
                 </span>
               </div>
             </div>
@@ -154,26 +155,26 @@ export default function ProfilePage() {
             {[
               {
                 label: "বাকি পিচ",
-                value: stats ? String(stats.pitchesRemainingThisMonth) : "…",
+                value: stats ? toBanglaDigits(stats.pitchesRemainingThisMonth) : "…",
                 Icon: MicIcon,
                 tone: "bg-accent-soft text-accent",
               },
               {
                 label: "মূল্যায়িত পিচ",
-                value: stats ? String(stats.totalPitchesEvaluated) : "…",
+                value: stats ? toBanglaDigits(stats.totalPitchesEvaluated) : "…",
                 Icon: CheckCircleIcon,
                 tone: "bg-teal-soft text-teal",
               },
               {
                 label: "কমপ্লেটেড মডিউল",
-                value: stats ? String(stats.completedModules) : "…",
+                value: stats ? toBanglaDigits(stats.completedModules) : "…",
                 Icon: BookIcon,
                 tone: "bg-navy-soft text-navy",
               },
               {
                 label: "গড় স্কোর",
                 value:
-                  stats?.averageScore != null ? `${stats.averageScore}%` : "…",
+                  stats?.averageScore != null ? `${toBanglaDigits(stats.averageScore)}%` : "…",
                 Icon: TrendingUpIcon,
                 tone: "bg-success-soft text-success",
               },
@@ -221,7 +222,7 @@ export default function ProfilePage() {
                     {item.skill}
                   </span>
                   <span className="font-bold text-foreground">
-                    {item.percent}%
+                    {toBanglaDigits(item.percent)}%
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-border overflow-hidden">
@@ -262,14 +263,14 @@ export default function ProfilePage() {
                       : "bg-error-soft text-error"
                   }`}
                 >
-                  {report.score}
+                  {toBanglaDigits(report.score)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-[14px] text-foreground truncate">
                     {report.title}
                   </div>
                   <div className="text-[12px] text-foreground-muted">
-                    {REPORT_KIND_LABEL[report.kind]} • {report.date}
+                    {REPORT_KIND_LABEL[report.kind]} • {toBanglaDigits(report.date)}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-[13px] font-bold text-navy shrink-0">

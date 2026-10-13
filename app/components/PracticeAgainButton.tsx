@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authFetch } from "../lib/clientFetch";
 import { formatBnDayMonth } from "../lib/formatDate";
+import { toBanglaDigits } from "../lib/toBanglaDigits";
 import type { StatsSummary } from "../lib/types";
 import { MONTHLY_PITCH_LIMIT } from "./home/PitchesRemainingCard";
 import { MicIcon, SparkleIcon, XIcon } from "./icons";
@@ -24,8 +25,6 @@ function getQuotaTone(remaining: number | null): QuotaTone {
   }
   return { icon: "bg-navy-soft text-navy", number: "text-navy", bar: "bg-navy", card: "border-border bg-background-elevated" };
 }
-
-const formatBnNumber = (n: number) => n.toLocaleString("bn-BD");
 
 export function PracticeAgainButton({
   href,
@@ -99,10 +98,10 @@ export function PracticeAgainButton({
                 <div className="flex flex-col">
                   <h2 className="text-[13px] text-foreground-muted">এই মাসে বাকি পিচ</h2>
                   <div className={`font-display font-bold text-[26px] leading-tight ${tone.number}`}>
-                    {pitchesRemaining === null ? "…" : formatBnNumber(pitchesRemaining)}
+                    {pitchesRemaining === null ? "…" : toBanglaDigits(pitchesRemaining)}
                     <span className="text-[13px] font-semibold text-foreground-muted">
                       {" "}
-                      / {formatBnNumber(MONTHLY_PITCH_LIMIT)}
+                      / {toBanglaDigits(MONTHLY_PITCH_LIMIT)}
                     </span>
                   </div>
                 </div>

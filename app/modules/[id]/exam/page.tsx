@@ -1,5 +1,6 @@
 "use client";
 
+import { toBanglaDigits } from "@/app/lib/toBanglaDigits";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -122,7 +123,7 @@ export default function ModuleExamPage() {
               <TargetIcon size={14} />
               পাস মার্ক:{" "}
               <span className="font-semibold text-foreground">
-                {exam.passMark}%
+                {toBanglaDigits(exam.passMark)}%
               </span>
             </span>
           </div>

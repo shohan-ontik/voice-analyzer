@@ -1,5 +1,6 @@
 "use client";
 
+import { toBanglaDigits } from "@/app/lib/toBanglaDigits";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -437,7 +438,7 @@ export default function ModuleExamRecordPage() {
                 <p className="text-[12px] text-foreground-muted mt-1">
                   পাস মার্ক:{" "}
                   <span className="font-semibold text-foreground">
-                    {exam.passMark}%
+                    {toBanglaDigits(exam.passMark)}%
                   </span>
                 </p>
               </>

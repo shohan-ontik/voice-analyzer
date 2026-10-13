@@ -16,6 +16,7 @@ import { ProgressBar } from "./components/shared/ProgressBar";
 import { authFetch } from "./lib/clientFetch";
 import { upcomingExam } from "./lib/dashboardData";
 import { getModuleStatus, pickContinueModule } from "./lib/moduleProgress";
+import { toBanglaDigits } from "./lib/toBanglaDigits";
 import type { AppUser } from "./lib/types";
 import { useModules } from "./lib/useModules";
 
@@ -110,15 +111,15 @@ function HomeContent() {
                 {continueModule.title}
               </div>
               <p className="text-[13px] text-foreground-muted leading-relaxed mb-4 line-clamp-2">
-                মডিউল {continueModule.order + 1}: {continueModule.description}
+                মডিউল {toBanglaDigits(continueModule.order + 1)}: {continueModule.description}
               </p>
 
               <div className="flex items-center justify-between text-[13px] mb-2">
                 <span className="font-semibold text-foreground">
-                  {continueProgressPercent}% সম্পন্ন
+                  {toBanglaDigits(continueProgressPercent)}% সম্পন্ন
                 </span>
                 <span className="text-foreground-muted">
-                  {continueChaptersRemaining}টি অধ্যায় বাকি
+                  {toBanglaDigits(continueChaptersRemaining)}টি অধ্যায় বাকি
                 </span>
               </div>
               <ProgressBar

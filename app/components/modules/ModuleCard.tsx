@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getModuleStatus, type ModuleStatus } from "../../lib/moduleProgress";
+import { toBanglaDigits } from "../../lib/toBanglaDigits";
 import type { TrainingModuleSummary } from "../../lib/types";
 import {
   ArrowRightIcon,
@@ -65,7 +66,7 @@ export function ModuleCard({
             {meta.label}
           </span>
           <span className="text-[11.5px] font-semibold text-foreground-muted shrink-0">
-            {completed} / {total} চ্যাপ্টার কমপ্লিট
+            {toBanglaDigits(completed)} / {toBanglaDigits(total)} চ্যাপ্টার কমপ্লিট
           </span>
         </div>
 
