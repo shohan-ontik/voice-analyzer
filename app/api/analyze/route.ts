@@ -204,7 +204,7 @@ export async function POST(request: Request) {
 
     const ai = new GoogleGenAI({ apiKey });
     const interaction = await ai.interactions.create({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-3.1-flash-lite",
       input: [
         {
           type: "text",
