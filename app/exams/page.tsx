@@ -5,7 +5,7 @@ import { ApiClientError, listExams } from "../lib/apiClient";
 import { getSessionToken } from "../lib/session";
 import { parseExamSort, type ExamListItem } from "../lib/types";
 
-export const EXAMS_PAGE_SIZE = 10;
+const EXAMS_PAGE_SIZE = 10;
 
 export default async function ExamsPage({
   searchParams,

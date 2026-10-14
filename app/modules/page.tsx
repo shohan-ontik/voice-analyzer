@@ -4,7 +4,7 @@ import { ApiClientError, listModules } from "../lib/apiClient";
 import { getSessionToken } from "../lib/session";
 import type { TrainingModuleSummary } from "../lib/types";
 
-export const MODULES_PAGE_SIZE = 10;
+const MODULES_PAGE_SIZE = 10;
 
 export default async function ModulesPage() {
   const token = await getSessionToken();
