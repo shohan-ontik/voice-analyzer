@@ -4,17 +4,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { PitchesRemainingCard } from "./components/home/PitchesRemainingCard";
+import { UpcomingExamCard } from "./components/home/UpcomingExamCard";
 import {
-  AwardIcon,
-  CalendarIcon,
-  CheckCircleIcon,
   GraduationCapIcon,
   PlayIcon,
 } from "./components/icons";
 import { MODULE_STATUS_META } from "./components/modules/ModuleCard";
 import { ProgressBar } from "./components/shared/ProgressBar";
 import { authFetch } from "./lib/clientFetch";
-import { upcomingExam } from "./lib/dashboardData";
 import { getModuleStatus, pickContinueModule } from "./lib/moduleProgress";
 import { toBanglaDigits } from "./lib/toBanglaDigits";
 import type { AppUser } from "./lib/types";
@@ -141,59 +138,7 @@ function HomeContent() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-border bg-background-elevated p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent" />
-              <span className="font-display font-bold text-[16px] text-foreground">
-                আপকামিং এক্সাম
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 text-[12px] text-accent font-semibold">
-              <CalendarIcon size={14} />
-              শেষ তারিখ: {upcomingExam.dueDate}
-            </div>
-            <div>
-              <div className="font-display font-bold text-[15px] text-foreground mb-1">
-                {upcomingExam.title}
-              </div>
-              <p className="text-[13px] text-foreground-muted leading-relaxed">
-                {upcomingExam.description}
-              </p>
-            </div>
-            <div className="h-px bg-border" />
-            <div className="flex items-center justify-between text-[12.5px]">
-              <span className="text-foreground-muted">
-                {upcomingExam.prerequisiteLabel}
-              </span>
-              <span className="flex items-center gap-1.5 text-success font-semibold">
-                <CheckCircleIcon size={14} />
-                {upcomingExam.prerequisiteStatus}
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={continueChaptersRemaining > 0}
-            onClick={() => router.push(`/modules/${continueModule?.slug}/exam`)}
-            className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-navy text-warning font-display font-semibold text-sm cursor-pointer"
-          >
-            <AwardIcon size={16} />
-            এক্সামে যান
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/history")}
-            className="text-center text-[13px] font-semibold text-foreground-muted hover:text-foreground cursor-pointer"
-          >
-            পূর্ববর্তী রিপোর্ট পর্যালোচনা
-          </button>
-        </div>
+        <UpcomingExamCard />
       </div>
     </div>
   );
