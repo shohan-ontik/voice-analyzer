@@ -17,6 +17,8 @@ import {
 } from "../../../../../../lib/roleplayScenarioCache";
 import type { PitchScenario } from "../../../../../../lib/types";
 import { useModule } from "../../../../../../lib/useModules";
+import { MIN_PITCH_SECONDS } from "../../../../../../lib/constants";
+import { toBanglaDigits } from "../../../../../../lib/toBanglaDigits";
 
 function buildReferenceFacts(
   chapterDescription: string,
@@ -367,8 +369,9 @@ export default function ChapterRoleplayRecordPage() {
                   <button
                     type="button"
                     onClick={stopRecording}
+                    disabled={seconds < MIN_PITCH_SECONDS}
                     aria-label="রেকর্ডিং বন্ধ করুন"
-                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center cursor-pointer"
+                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ background: "var(--accent)" }}
                   >
                     <svg
@@ -380,6 +383,11 @@ export default function ChapterRoleplayRecordPage() {
                       <rect x="6" y="6" width="12" height="12" rx="2" />
                     </svg>
                   </button>
+                )}
+                {status === "recording" && seconds < MIN_PITCH_SECONDS && (
+                  <p className="text-[12.5px] text-navy-ink/60">
+                    কমপক্ষে {toBanglaDigits(MIN_PITCH_SECONDS)} সেকেন্ড কথা বলার পর রেকর্ডিং বন্ধ করা যাবে
+                  </p>
                 )}
 
                 {status === "stopped" && (

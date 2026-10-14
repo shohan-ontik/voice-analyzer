@@ -67,6 +67,9 @@ export default function LoginPage() {
               type="text"
               required
               autoFocus
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:border-accent"

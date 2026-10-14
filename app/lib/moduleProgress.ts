@@ -7,7 +7,7 @@ import type { LearningMaterial, ModuleExam, TrainingModule, TrainingModuleSummar
 
 export const MODULE_STATUSES = ["completed", "in_progress", "not_started"] as const;
 export type ModuleStatus = (typeof MODULE_STATUSES)[number];
-export type ExamStatus = "passed" | "failed" | "ready" | "locked";
+export type ExamStatus = "passed" | "failed" | "ready" | "locked" | "expired";
 export type ChapterStatus = "completed" | "in_progress" | "unlocked" | "locked";
 export type MaterialStatus = "completed" | "unlocked" | "locked";
 
@@ -33,13 +33,24 @@ export function getModuleStatus(trainingModule: { progressPercent: number }): Mo
   return "in_progress";
 }
 
+// True once an exam's due date has passed. Exams without a due date never
+// expire.
+export function isExamExpired(exam: Pick<ModuleExam, "dueDate">, now = Date.now()): boolean {
+  if (!exam.dueDate) return false;
+  const due = new Date(exam.dueDate).getTime();
+  return !Number.isNaN(due) && now > due;
+}
+
 // An exam unlocks once every chapter in its module is completed, and stays
 // "passed" once a passing attempt exists. Once unlocked, an attempt that
 // didn't reach the pass mark (a `bestScore` with no passing attempt) shows as
 // "failed" rather than reverting to "ready", so the trainee sees their result
-// instead of a blank slate.
+// instead of a blank slate. A passing result is kept forever, but once the
+// due date has passed an exam that wasn't passed becomes "expired" and can no
+// longer be taken.
 export function getExamStatus(trainingModule: TrainingModule, exam: ModuleExam): ExamStatus {
   if (exam.passed) return "passed";
+  if (isExamExpired(exam)) return "expired";
   const { completed, total } = getChapterProgress(trainingModule);
   if (total === 0 || completed < total) return "locked";
   return exam.bestScore !== null ? "failed" : "ready";

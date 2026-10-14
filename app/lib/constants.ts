@@ -7,3 +7,8 @@ export const PUBLIC_PATHS = ["/login", "/health"];
 export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.includes(pathname);
 }
+
+// Recordings shorter than this can't be meaningfully scored, so the record
+// pages keep the stop button disabled until it's reached. /api/analyze
+// separately rejects recordings with too little audible speech.
+export const MIN_PITCH_SECONDS = 5;

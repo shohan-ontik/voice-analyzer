@@ -19,6 +19,14 @@ export type AnalysisResult = {
   transcript: TranscriptSegment[];
 };
 
+// The overall score shown to users is the rounded average of the category
+// scores, computed here: the model's own `overall` drifted by up to 11 points
+// from its category scores in testing.
+export function overallScore(categories: { score: number }[]) {
+  if (categories.length === 0) return 0;
+  return Math.round(categories.reduce((sum, c) => sum + c.score, 0) / categories.length);
+}
+
 // Categories are admin-managed (see the admin panel's Categories page) and
 // fetched from the backend at analysis time, so the schema/prompt below are
 // built per-request from whichever names are currently active, rather than
@@ -27,6 +35,9 @@ export function buildAnalysisSchema(categoryNames: string[]) {
   return {
     type: "object",
     properties: {
+      // Never shown (see overallScore) but still requested: without it the
+      // model scores categories in isolation and a fluent but wrong,
+      // off-topic or unethical pitch averaged 60-80 instead of ~25 in testing.
       overall: {
         type: "number",
         description: "Overall score 0-100, the rounded average of every category score.",
@@ -45,7 +56,7 @@ export function buildAnalysisSchema(categoryNames: string[]) {
               type: "string",
               enum: categoryNames,
             },
-            score: { type: "number", description: "0-100" },
+            score: { type: "number", description: "0-100. 0 if the recording contains no intelligible speech." },
             feedback: { type: "string", description: "One specific sentence of feedback, in Bangla." },
             tips: {
               type: "array",
@@ -92,15 +103,15 @@ ${referenceFacts}
 
 Watch or listen to the attached recording and:
 
-1. Transcribe exactly what the speaker actually said in Bangla, split into short consecutive segments that together cover the entire recording. Tag each segment's "kind":
+1. Transcribe exactly what the speaker actually said in Bangla, split into short consecutive segments that together cover the entire recording. Transcribe only words you can actually hear in the recording — never fill in, guess, or reconstruct words from the reference facts above, and do not shorten or reword what was said. Tag each segment's "kind":
    - "filler" for filler words or hesitation sounds (e.g. "মানে", "আসলে", "উম", unnecessary repetitions) that add no content
    - "pronunciation" for words that were mispronounced, slurred, or unclear
    - "plain" for everything else
 
-2. Score each of the following categories from 0-100, each with one sentence of specific feedback (in Bangla) and exactly two short, actionable tips (in Bangla) that reference what was actually said (not generic advice). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
+2. Score each of the following categories from 0-100, each with one sentence of specific feedback (in Bangla) and exactly two short, actionable tips (in Bangla) that reference what was actually said (not generic advice, and never asking for something the speaker already said). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
 ${categoryList}
 
 3. Give an overall score (the rounded average of the category scores) and one encouraging, specific one-sentence verdict, in Bangla.
 
-Be honest and specific. If the recording is silent, too short to evaluate, or does not contain a spoken pitch, still return the full JSON shape: score every category low, explain why in the feedback (in Bangla), and set the transcript to a single segment describing what you actually heard.`;
+Be honest and specific, and score consistently: the same recording should always receive the same scores. If the recording contains no intelligible speech (silence, background noise only, or too short to evaluate), do NOT invent a pitch: set the transcript to a single segment describing what you actually heard, score every category 0, and explain why in the feedback (in Bangla).`;
 }

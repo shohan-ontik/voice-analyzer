@@ -1,5 +1,9 @@
 import { apiErrorResponse, getModule } from "@/app/lib/apiClient";
-import { buildScenarioPrompt, buildScenarioSchema } from "@/app/lib/scenarioGeneration";
+import {
+  buildScenarioPrompt,
+  buildScenarioSchema,
+  initialsFromName,
+} from "@/app/lib/scenarioGeneration";
 import { getSessionToken } from "@/app/lib/session";
 import type { PitchScenario } from "@/app/lib/types";
 import { GoogleGenAI } from "@google/genai";
@@ -10,28 +14,45 @@ export const maxDuration = 30;
 
 function normalize(raw: unknown): PitchScenario {
   const r = raw as Partial<PitchScenario> & Record<string, unknown>;
+  const clientName =
+    typeof r.clientName === "string" && r.clientName
+      ? r.clientName
+      : "অজানা ক্লায়েন্ট";
   return {
-    clientInitials: typeof r.clientInitials === "string" && r.clientInitials ? r.clientInitials.slice(0, 3) : "??",
-    clientName: typeof r.clientName === "string" && r.clientName ? r.clientName : "অজানা ক্লায়েন্ট",
+    clientInitials: initialsFromName(clientName),
+    clientName,
     clientTitle: typeof r.clientTitle === "string" ? r.clientTitle : "",
     objection: typeof r.objection === "string" ? r.objection : "",
     objective: typeof r.objective === "string" ? r.objective : "",
-    criteria: Array.isArray(r.criteria) ? r.criteria.filter((c): c is string => typeof c === "string").slice(0, 6) : [],
+    criteria: Array.isArray(r.criteria)
+      ? r.criteria.filter((c): c is string => typeof c === "string").slice(0, 6)
+      : [],
   };
 }
 
-export async function POST(_request: Request, { params }: { params: Promise<{ slug: string; chapterSlug: string }> }) {
+export async function POST(
+  _request: Request,
+  { params }: { params: Promise<{ slug: string; chapterSlug: string }> },
+) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: { message: "Server is missing GEMINI_API_KEY. Add it to .env.local and restart the dev server." } },
-      { status: 500 }
+      {
+        error: {
+          message:
+            "Server is missing GEMINI_API_KEY. Add it to .env.local and restart the dev server.",
+        },
+      },
+      { status: 500 },
     );
   }
 
   const token = await getSessionToken();
   if (!token) {
-    return NextResponse.json({ error: { message: "Not authenticated." } }, { status: 401 });
+    return NextResponse.json(
+      { error: { message: "Not authenticated." } },
+      { status: 401 },
+    );
   }
 
   const { slug, chapterSlug } = await params;
@@ -45,13 +66,23 @@ export async function POST(_request: Request, { params }: { params: Promise<{ sl
 
   const chapter = trainingModule.chapters.find((c) => c.slug === chapterSlug);
   if (!chapter) {
-    return NextResponse.json({ error: { message: "Chapter not found." } }, { status: 404 });
+    return NextResponse.json(
+      { error: { message: "Chapter not found." } },
+      { status: 404 },
+    );
+  }
+
+  // Without a description there's nothing to ground a scenario in — the model
+  // invents one from the material titles alone (in testing: NID collection,
+  // a hackathon pitch to an IT manager) — so use the chapter's stored one.
+  if (!chapter.description.trim()) {
+    return NextResponse.json(chapter.scenario);
   }
 
   try {
     const ai = new GoogleGenAI({ apiKey });
     const interaction = await ai.interactions.create({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-2.5-flash-lite",
       input: [
         {
           type: "text",
@@ -59,7 +90,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ sl
             trainingModule.title,
             chapter.title,
             chapter.description,
-            chapter.materials.map((m) => m.title)
+            chapter.materials.map((m) => m.title),
           ),
         },
       ],
@@ -78,6 +109,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ sl
     return NextResponse.json(scenario);
   } catch (err) {
     console.error("Scenario generation failed:", err);
-    return NextResponse.json({ error: { message: "AI সিনারিও তৈরি করা যায়নি। আবার চেষ্টা করুন।" } }, { status: 502 });
+    return NextResponse.json(
+      { error: { message: "AI সিনারিও তৈরি করা যায়নি। আবার চেষ্টা করুন।" } },
+      { status: 502 },
+    );
   }
 }

@@ -1,6 +1,7 @@
 import {
   buildAnalysisPrompt,
   buildAnalysisSchema,
+  overallScore,
   type AnalysisResult,
 } from "@/app/lib/analysis";
 import {
@@ -8,6 +9,7 @@ import {
   listActiveScoreCategoryNames,
 } from "@/app/lib/apiClient";
 import { clearSessionCookie, getSessionToken } from "@/app/lib/session";
+import { MIN_SPEECH_SECONDS, measureSpeech } from "@/app/lib/speechDetection";
 import { GoogleGenAI } from "@google/genai";
 import ffmpegPath from "ffmpeg-static";
 import { NextResponse } from "next/server";
@@ -15,6 +17,10 @@ import { spawn } from "node:child_process";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+// Fixed so re-analysing the same recording gives (near) identical marks; the
+// interactions API exposes a seed but no temperature.
+const ANALYSIS_SEED = 7;
 
 // The @google/genai SDK sometimes wraps the real error in `.cause`, so check
 // both levels for the shape Gemini uses on 429s (statusCode/error.code) plus
@@ -96,10 +102,6 @@ function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
     };
   });
 
-  const overall = Number.isFinite(r.overall)
-    ? clamp(r.overall)
-    : clamp(categories.reduce((s, c) => s + c.score, 0) / categories.length);
-
   const transcript = Array.isArray(r.transcript)
     ? r.transcript
         .filter((s) => s && typeof s.text === "string")
@@ -114,7 +116,7 @@ function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
     : [];
 
   return {
-    overall,
+    overall: overallScore(categories),
     verdict: typeof r.verdict === "string" ? r.verdict : "Analysis complete.",
     categories,
     transcript,
@@ -173,12 +175,24 @@ export async function POST(request: Request) {
     }
 
     const inputBuffer = Buffer.from(await file.arrayBuffer());
+    // Also extracts the audio track of video recordings, so both modes get
+    // the speech check below.
+    const wav = await transcodeToWav(inputBuffer);
+    if (measureSpeech(wav).speechSeconds < MIN_SPEECH_SECONDS) {
+      return NextResponse.json(
+        {
+          error:
+            "রেকর্ডিংয়ে কোনো কথা শোনা যায়নি। মাইক্রোফোন চালু আছে কিনা দেখে, মাইকের কাছে স্পষ্ট করে আবার রেকর্ড করুন।",
+        },
+        { status: 422 },
+      );
+    }
+
     let data: string;
     let mimeType: string;
     let partType: "audio" | "video";
 
     if (mode === "audio") {
-      const wav = await transcodeToWav(inputBuffer);
       data = wav.toString("base64");
       mimeType = "audio/wav";
       partType = "audio";
@@ -190,7 +204,7 @@ export async function POST(request: Request) {
 
     const ai = new GoogleGenAI({ apiKey });
     const interaction = await ai.interactions.create({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-2.5-flash-lite",
       input: [
         {
           type: "text",
@@ -203,6 +217,7 @@ export async function POST(request: Request) {
         mime_type: "application/json",
         schema: buildAnalysisSchema(categoryNames),
       },
+      generation_config: { seed: ANALYSIS_SEED },
     });
 
     if (!interaction.output_text) {

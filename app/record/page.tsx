@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, MicIcon, XIcon } from "../components/icons";
 import { useAppState } from "../providers";
+import { MIN_PITCH_SECONDS } from "../lib/constants";
+import { toBanglaDigits } from "../lib/toBanglaDigits";
 
 type Status = "idle" | "recording" | "stopped";
 
@@ -243,14 +245,20 @@ export default function RecordPage() {
               <button
                 type="button"
                 onClick={stopRecording}
+                disabled={seconds < MIN_PITCH_SECONDS}
                 aria-label="Stop recording"
-                className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer"
+                className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "var(--accent)" }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent-ink)">
                   <rect x="6" y="6" width="12" height="12" rx="2" />
                 </svg>
               </button>
+            )}
+            {status === "recording" && seconds < MIN_PITCH_SECONDS && (
+              <p className="text-[12.5px] text-navy-ink/60">
+                কমপক্ষে {toBanglaDigits(MIN_PITCH_SECONDS)} সেকেন্ড কথা বলার পর রেকর্ডিং বন্ধ করা যাবে
+              </p>
             )}
 
             {status === "stopped" && (

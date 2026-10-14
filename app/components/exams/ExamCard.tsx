@@ -1,7 +1,7 @@
 import { toBanglaDigits } from "@/app/lib/toBanglaDigits";
 import Link from "next/link";
 import { formatBnDate } from "../../lib/formatDate";
-import type { ExamStatus } from "../../lib/moduleProgress";
+import { isExamExpired, type ExamStatus } from "../../lib/moduleProgress";
 import type { ModuleExam } from "../../lib/types";
 import {
   CalendarIcon,
@@ -36,17 +36,25 @@ const STATUS_META: Record<
     badgeClass: "bg-border text-foreground-muted",
     Icon: LockIcon,
   },
+  expired: {
+    label: "সময় শেষ",
+    badgeClass: "bg-border text-foreground-muted",
+    Icon: ClockIcon,
+  },
 };
 
 export function ExamCard({
   exam,
-  status,
+  status: serverStatus,
   moduleSlug,
 }: {
   exam: ModuleExam;
   status: ExamStatus;
   moduleSlug: string;
 }) {
+  // The list endpoint's status doesn't know about the deadline, so apply it here.
+  const status: ExamStatus =
+    serverStatus !== "passed" && isExamExpired(exam) ? "expired" : serverStatus;
   const meta = STATUS_META[status];
   const hasResult = status === "passed" || status === "failed";
   const badgeLabel =
@@ -62,11 +70,14 @@ export function ExamCard({
           : `/modules/${moduleSlug}/exam/record/report`
       }
       onClick={(e) => {
-        if (status === "locked") {
+        if (status === "locked" || status === "expired") {
           e.preventDefault();
         }
       }}
-      className="rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-3 cursor-pointer"
+      aria-disabled={status === "locked" || status === "expired"}
+      className={`rounded-2xl border border-border bg-background-elevated p-5 flex flex-col gap-3 ${
+        status === "expired" ? "cursor-not-allowed" : "cursor-pointer"
+      }`}
     >
       <div className="flex items-center justify-between flex-wrap gap-2">
         <span
@@ -103,6 +114,17 @@ export function ExamCard({
           >
             <LockIcon size={13} />
             প্রিরিকুইজিট ফুলফিল করুন
+          </button>
+        )}
+
+        {status === "expired" && (
+          <button
+            type="button"
+            disabled
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-border text-foreground-muted font-display font-semibold text-[13px] cursor-not-allowed"
+          >
+            <ClockIcon size={13} />
+            পরীক্ষার সময় শেষ
           </button>
         )}
 

@@ -77,6 +77,22 @@ export default function ModuleExamPage() {
     );
   }
 
+  if (status === "expired") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-[13.5px] text-foreground-muted">
+          এই পরীক্ষার সময়সীমা শেষ হয়ে গেছে, তাই আপনি আর অংশ নিতে পারবেন না।
+        </p>
+        <Link
+          href={`/modules/${trainingModule.slug}`}
+          className="text-[13px] font-semibold text-navy cursor-pointer"
+        >
+          মডিউলে ফিরে যান
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <div className="px-4 pt-6 lg:px-10 lg:pt-8 flex items-center gap-2 text-[13px] flex-wrap">

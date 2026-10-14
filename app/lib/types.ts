@@ -10,6 +10,8 @@ export type AppUser = {
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   firstLoginAt: string | null;
+  employeeId: string | null;
+  department: string | null;
   createdAt: string;
 };
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ExamStatus } from "../../lib/moduleProgress";
 import { formatBnDate } from "../../lib/formatDate";
 import type { ModuleExam } from "../../lib/types";
-import { AwardIcon, CalendarIcon, CheckCircleIcon, LockIcon, SparkleIcon, XIcon } from "../icons";
+import { AwardIcon, CalendarIcon, CheckCircleIcon, ClockIcon, LockIcon, SparkleIcon, XIcon } from "../icons";
 
 const STATUS_COPY: Record<ExamStatus, { description: string; cta: string }> = {
   ready: {
@@ -23,6 +23,10 @@ const STATUS_COPY: Record<ExamStatus, { description: string; cta: string }> = {
     description: "এই পরীক্ষা শুরু করতে আগে মডিউলের সব অধ্যায় সম্পন্ন করুন।",
     cta: "প্রিরিকুইজিট ফুলফিল করুন",
   },
+  expired: {
+    description: "এই পরীক্ষার সময়সীমা শেষ হয়ে গেছে।",
+    cta: "পরীক্ষার সময় শেষ",
+  },
 };
 
 // Only shown once the trainee has an actual result — "ready"/"locked" have
@@ -42,7 +46,7 @@ export function ModuleExamBanner({
   moduleSlug: string;
 }) {
   const copy = STATUS_COPY[status];
-  const locked = status === "locked";
+  const locked = status === "locked" || status === "expired";
   const passed = status === "passed";
   const resultBadge = RESULT_BADGE[status];
   const examQuery = `?exam=${encodeURIComponent(exam.slug)}`;
@@ -93,7 +97,7 @@ export function ModuleExamBanner({
           disabled
           className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-full font-display font-semibold text-[13.5px] shrink-0 bg-border text-foreground-muted cursor-not-allowed w-full sm:w-auto"
         >
-          <LockIcon size={14} />
+          {status === "expired" ? <ClockIcon size={14} /> : <LockIcon size={14} />}
           {copy.cta}
         </button>
       ) : (
