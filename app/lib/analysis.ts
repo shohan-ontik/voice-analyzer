@@ -12,6 +12,14 @@ export type TranscriptSegment = {
   kind: TranscriptKind;
 };
 
+// Raw 0-100 content signals the model reports alongside its category scores.
+// They exist only so code can cap the categories (see applyContentCeiling);
+// they are not shown to users.
+export type ContentSignals = {
+  relevance: number | null;
+  coverage: number | null;
+};
+
 export type AnalysisResult = {
   overall: number;
   verdict: string;
@@ -27,6 +35,51 @@ export function overallScore(categories: { score: number }[]) {
   return Math.round(categories.reduce((sum, c) => sum + c.score, 0) / categories.length);
 }
 
+// How far a category may rise above the content score, so an accurate, on-topic
+// pitch can still be rewarded for delivery without a ceiling that feels harsh.
+const CONTENT_CEILING_MARGIN = 15;
+
+// Spoken-word counts (fillers excluded) below which every score is capped,
+// ascending. A pitch with almost nothing in it can't be good at anything.
+const WORD_COUNT_CEILINGS: [maxWords: number, ceiling: number][] = [
+  [8, 20],
+  [20, 40],
+  [35, 65],
+];
+
+export function countSpokenWords(transcript: TranscriptSegment[]) {
+  return transcript
+    .filter((s) => s.kind !== "filler")
+    .reduce((n, s) => n + (s.text.trim() ? s.text.trim().split(/\s+/).length : 0), 0);
+}
+
+// Most of the 9 categories are about delivery, and in testing the model
+// scored delivery highly (70+) even for off-topic or near-empty recordings
+// because the speaker sounded fluent. Telling it not to had no effect, so the
+// content signals it reports cap every category here instead: scores can't
+// exceed what the speaker actually said (relevance to the topic and coverage
+// of the reference facts) or how much they said.
+export function applyContentCeiling<T extends { score: number }>(
+  categories: T[],
+  signals: ContentSignals,
+  wordCount: number,
+): T[] {
+  const content = [signals.relevance, signals.coverage].filter(
+    (n): n is number => n !== null,
+  );
+  let ceiling = 100;
+  if (content.length > 0) {
+    ceiling = Math.min(100, Math.min(...content) + CONTENT_CEILING_MARGIN);
+  }
+  for (const [maxWords, wordCeiling] of WORD_COUNT_CEILINGS) {
+    if (wordCount < maxWords) {
+      ceiling = Math.min(ceiling, wordCeiling);
+      break;
+    }
+  }
+  return categories.map((c) => ({ ...c, score: Math.min(c.score, ceiling) }));
+}
+
 // Categories are admin-managed (see the admin panel's Categories page) and
 // fetched from the backend at analysis time, so the schema/prompt below are
 // built per-request from whichever names are currently active, rather than
@@ -35,6 +88,18 @@ export function buildAnalysisSchema(categoryNames: string[]) {
   return {
     type: "object",
     properties: {
+      // Listed first so the model judges the content before scoring anything
+      // else; applyContentCeiling caps every category by these.
+      relevance: {
+        type: "number",
+        description:
+          "0-100: how much of what the speaker said is actually about this pitch topic. 0 if it is unrelated, off-topic chatter, random words or nonsense; under 30 if mostly unrelated.",
+      },
+      coverage: {
+        type: "number",
+        description:
+          "0-100: how many of the important reference facts the speaker actually conveyed accurately. 0 if none; low if they said very little, however fluent.",
+      },
       // Never shown (see overallScore) but still requested: without it the
       // model scores categories in isolation and a fluent but wrong,
       // off-topic or unethical pitch averaged 60-80 instead of ~25 in testing.
@@ -86,7 +151,7 @@ export function buildAnalysisSchema(categoryNames: string[]) {
         },
       },
     },
-    required: ["overall", "verdict", "categories", "transcript"],
+    required: ["relevance", "coverage", "overall", "verdict", "categories", "transcript"],
   };
 }
 
@@ -111,7 +176,9 @@ Watch or listen to the attached recording and:
 2. Score each of the following categories from 0-100, each with one sentence of specific feedback (in Bangla) and exactly two short, actionable tips (in Bangla) that reference what was actually said (not generic advice, and never asking for something the speaker already said). None of these categories should be scored on how closely the speaker's wording matches the reference facts above word-for-word. For any category about factual accuracy or completeness (e.g. "Correctness"), judge whether what the speaker actually said is factually accurate and covers the important points from the reference facts — in their own words, any order, paraphrased is fine — and only mark it down for facts that are missing, wrong, or invented. Judge every other category by its plain-English meaning in the context of a "${scenarioLabel}" pitch:
 ${categoryList}
 
-3. Give an overall score (the rounded average of the category scores) and one encouraging, specific one-sentence verdict, in Bangla.
+3. Before scoring categories, judge the content: "relevance" (how much of what was said is about the "${scenarioLabel}" pitch) and "coverage" (how many of the important reference facts were conveyed accurately). Be strict: random, off-topic or nonsensical speech, or a very short answer that says little, must get low relevance/coverage and low scores in EVERY category, including delivery ones, because a pitch with no relevant content cannot have good clarity, confidence or structure however fluent it sounds. Reserve 80+ for pitches that are on-topic, accurate and reasonably complete.
+
+4. Give an overall score (the rounded average of the category scores) and one specific one-sentence verdict, in Bangla. Be encouraging only if the pitch earned it; if it was off-topic or said very little, say so plainly.
 
 Be honest and specific, and score consistently: the same recording should always receive the same scores. If the recording contains no intelligible speech (silence, background noise only, or too short to evaluate), do NOT invent a pitch: set the transcript to a single segment describing what you actually heard, score every category 0, and explain why in the feedback (in Bangla).`;
 }

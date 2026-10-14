@@ -1,6 +1,8 @@
 import {
+  applyContentCeiling,
   buildAnalysisPrompt,
   buildAnalysisSchema,
+  countSpokenWords,
   overallScore,
   type AnalysisResult,
 } from "@/app/lib/analysis";
@@ -87,7 +89,7 @@ function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
   const byName = new Map(
     (Array.isArray(r.categories) ? r.categories : []).map((c) => [c?.name, c]),
   );
-  const categories = categoryNames.map((name) => {
+  const rawCategories = categoryNames.map((name) => {
     const c = byName.get(name) as
       | Partial<AnalysisResult["categories"][number]>
       | undefined;
@@ -114,6 +116,14 @@ function normalize(raw: unknown, categoryNames: string[]): AnalysisResult {
             : "plain",
         }))
     : [];
+
+  const signal = (n: unknown) =>
+    typeof n === "number" && Number.isFinite(n) ? clamp(n) : null;
+  const categories = applyContentCeiling(
+    rawCategories,
+    { relevance: signal(r.relevance), coverage: signal(r.coverage) },
+    countSpokenWords(transcript),
+  );
 
   return {
     overall: overallScore(categories),
