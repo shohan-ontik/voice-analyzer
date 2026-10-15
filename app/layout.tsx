@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import { Noto_Serif_Bengali, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AppStateProvider } from "./providers";
 import { AppChrome } from "./components/AppChrome";
 
-const spaceGrotesk = Space_Grotesk({
+// Self-hosted variable fonts so the build never has to reach Google Fonts.
+const spaceGrotesk = localFont({
+  src: "./fonts/SpaceGrotesk.woff2",
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "500 700",
+  display: "swap",
 });
 
-const notoSerifBengali = Noto_Serif_Bengali({
+const notoSerifBengali = localFont({
+  src: "./fonts/NotoSerifBengali.woff2",
   variable: "--font-noto-serif-bengali",
-  subsets: ["bengali", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
